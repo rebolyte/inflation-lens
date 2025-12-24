@@ -2,12 +2,12 @@ const YEAR_REGEX = /\b(19[1-9]\d|20[0-2]\d)\b/;
 const MIN_YEAR = 1913;
 const MAX_YEAR = 2025;
 
-function validateYear(year) {
+export function validateYear(year) {
   const y = parseInt(year, 10);
   return y >= MIN_YEAR && y <= MAX_YEAR ? y : null;
 }
 
-function detectFromMetaTags() {
+export function detectFromMetaTags() {
   const metaSelectors = [
     'meta[property="article:published_time"]',
     'meta[property="og:published_time"]',
@@ -34,7 +34,7 @@ function detectFromMetaTags() {
   return null;
 }
 
-function detectFromJsonLd() {
+export function detectFromJsonLd() {
   const scripts = document.querySelectorAll('script[type="application/ld+json"]');
 
   for (const script of scripts) {
@@ -60,7 +60,7 @@ function detectFromJsonLd() {
   return null;
 }
 
-function detectFromUrl() {
+export function detectFromUrl() {
   const url = window.location.href;
   const pathname = window.location.pathname;
 
@@ -83,7 +83,7 @@ function detectFromUrl() {
   return null;
 }
 
-function detectPageYear() {
+export function detectPageYear() {
   let year = detectFromMetaTags();
   if (year) return year;
 

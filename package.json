@@ -1,14 +1,22 @@
 {
-  "name": "wishlist-export",
+  "name": "inflation-lens",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "repository": "git@github.com:rebolyte/legendary-octo-bassoon.git",
   "author": "James Irwin <rebolyte@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "test": "node test.ts",
+    "test:watch": "node test.ts --watch"
+  },
   "devDependencies": {
     "@types/alpinejs": "^3.13.11",
+    "@types/chrome": "^0.0.277",
     "@types/node": "^25.0.3",
     "chrome-types": "^0.1.385",
+    "glob": "^11.0.0",
+    "jsdom": "^25.0.1",
     "typescript": "^5.9.3"
   },
   "dependencies": {}
