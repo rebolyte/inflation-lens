@@ -1,21 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Amazon Wishlist Exporter",
+  "name": "Inflation Lens",
   "version": "1.0.0",
-  "description": "Export your Amazon wishlist to CSV, JSON, or print to PDF",
-  "permissions": ["activeTab", "downloads", "scripting", "management"],
-  "host_permissions": [
-    "https://www.amazon.com/*",
-    "https://www.amazon.co.uk/*",
-    "https://www.amazon.ca/*",
-    "https://www.amazon.de/*",
-    "https://www.amazon.fr/*",
-    "https://www.amazon.it/*",
-    "https://www.amazon.es/*",
-    "https://www.amazon.co.jp/*",
-    "https://www.amazon.in/*",
-    "https://www.amazon.com.au/*"
-  ],
+  "description": "Automatically adjust historical prices for inflation",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -31,19 +20,14 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://www.amazon.com/*/wishlist/*",
-        "https://www.amazon.co.uk/*/wishlist/*",
-        "https://www.amazon.ca/*/wishlist/*",
-        "https://www.amazon.de/*/wishlist/*",
-        "https://www.amazon.fr/*/wishlist/*",
-        "https://www.amazon.it/*/wishlist/*",
-        "https://www.amazon.es/*/wishlist/*",
-        "https://www.amazon.co.jp/*/wishlist/*",
-        "https://www.amazon.in/*/wishlist/*",
-        "https://www.amazon.com.au/*/wishlist/*"
+      "matches": ["<all_urls>"],
+      "js": [
+        "lib/inflation-calculator.js",
+        "content/date-detector.js",
+        "content/price-replacer.js",
+        "content/inflation-detector.js"
       ],
-      "js": ["content/content.js"],
+      "css": ["content/inflation.css"],
       "run_at": "document_idle"
     }
   ],
@@ -52,7 +36,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["lib/*"],
+      "resources": ["data/cpi-data.json"],
       "matches": ["<all_urls>"]
     }
   ]

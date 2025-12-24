@@ -1,0 +1,45 @@
+.inflation-adjusted-price {
+  border-bottom: 2px dotted #0066cc;
+  cursor: help;
+  position: relative;
+}
+
+.inflation-adjusted-price::before {
+  content: attr(data-original-price) " in " attr(data-original-year) " = " attr(data-adjusted-price) " today";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 10000;
+}
+
+.inflation-adjusted-price::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 2px;
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 10000;
+}
+
+.inflation-adjusted-price:hover::before,
+.inflation-adjusted-price:hover::after {
+  opacity: 1;
+}
