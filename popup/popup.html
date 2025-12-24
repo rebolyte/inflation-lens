@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Wishlist Exporter</title>
+  <link rel="stylesheet" href="popup.css">
+  <script defer src="../vendor/alpine-3.15.1-csp.min.js"></script>
+</head>
+<body>
+  <div x-data="wishlistExporter" class="container">
+    <div class="header">
+      <h1>Amazon Wishlist Exporter</h1>
+    </div>
+
+    <div class="content">
+      <!-- Status Messages -->
+      <div x-show="!isAmazonWishlist" class="message warning">
+        <p>Please navigate to an Amazon wishlist page</p>
+      </div>
+
+      <div x-show="isAmazonWishlist && !loading && !error && !success">
+        <p class="info-text">Pick an export format</p>
+
+        <div class="export-options">
+          <label class="radio-label">
+            <input type="radio" x-model="exportFormat" value="csv" />
+            <span>CSV</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" x-model="exportFormat" value="json" />
+            <span>JSON</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" x-model="exportFormat" value="html" />
+            <span>HTML</span>
+          </label>
+        </div>
+
+        <button
+          @click="exportWishlist"
+          class="btn-primary"
+          :disabled="loading"
+        >
+          Export Wishlist
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div x-show="loading" class="message info">
+        <div class="spinner"></div>
+        <p x-text="loadingMessage">Loading...</p>
+        <p x-show="scrolling && currentItemCount > 0" class="small" x-text="currentItemCount + ' items found'"></p>
+      </div>
+
+      <!-- Success State -->
+      <div x-show="success" class="message success">
+        <p>✓ Wishlist exported successfully!</p>
+        <p class="small" x-text="itemCount + ' items exported'"></p>
+      </div>
+
+      <!-- Error State -->
+      <div x-show="error" class="message error">
+        <p>✗ Error: <span x-text="errorMessage"></span></p>
+        <button @click="reset" class="btn-secondary">Try Again</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p class="small">v1.0.0</p>
+      <p class="small" x-text="'Loaded: ' + loadTime"></p>
+      <button @click="reloadExtension" class="btn-secondary btn-reload">Reload Extension</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
