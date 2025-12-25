@@ -431,5 +431,105 @@ describe("price-replacer", () => {
       assert.ok(adjustedPrice.includes("$9") && adjustedPrice.toUpperCase().includes("M"),
         `Expected ~$9M inflation-adjusted price, got ${adjustedPrice}`);
     });
+
+    it("handles decimal + suffix combinations correctly", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "The deal was $2.5M in 2000";
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 1);
+
+      const span = div.querySelector(".inflation-adjusted-price");
+      const originalPrice = span.getAttribute("data-original-price");
+      // Must capture the full price including decimal and suffix
+      assert.strictEqual(originalPrice, "$2.5M",
+        `Expected $2.5M, got ${originalPrice}`);
+
+      // Verify inflation was calculated on 2.5 million, not 2.5
+      // $2.5M in 2000 = ~$4.65M in 2025 (2500000 * 320.0/172.2)
+      const adjustedPrice = span.getAttribute("data-adjusted-price");
+      assert.ok(adjustedPrice.includes("$4") && adjustedPrice.toUpperCase().includes("M"),
+        `Expected ~$4.6M inflation-adjusted price, got ${adjustedPrice}`);
+    });
+
+    it("handles lowercase suffixes correctly", () => {
+      const div = dom.window.document.createElement("div");
+      div.innerHTML = `
+        <p>Budget was $10k, revenue was $5m, and valuation was $1b in 2000</p>
+      `;
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 3, "Should find all three prices");
+
+      const spans = div.querySelectorAll(".inflation-adjusted-price");
+      assert.strictEqual(spans.length, 3);
+
+      // Verify each is captured with its suffix
+      const prices = Array.from(spans).map(s => s.getAttribute("data-original-price"));
+      assert.ok(prices.includes("$10k"), `Expected $10k, got ${prices}`);
+      assert.ok(prices.includes("$5m"), `Expected $5m, got ${prices}`);
+      assert.ok(prices.includes("$1b"), `Expected $1b, got ${prices}`);
+
+      // Verify calculations are on correct magnitudes
+      const adjusted = Array.from(spans).map(s => s.getAttribute("data-adjusted-price"));
+      // $10k → ~$18.6k, $5m → ~$9.3m, $1b → ~$1.86b
+      assert.ok(adjusted.some(p => p.includes("$18") || p.includes("$19")),
+        `Expected ~$18-19k, got ${adjusted}`);
+      assert.ok(adjusted.some(p => p.toUpperCase().includes("M")),
+        `Expected millions price, got ${adjusted}`);
+      assert.ok(adjusted.some(p => p.toUpperCase().includes("B")),
+        `Expected billions price, got ${adjusted}`);
+    });
+
+    it("handles simple prices without formatting", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "In 2000, a burger was $5 and a movie was $8";
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 2, "Should find both simple prices");
+
+      const spans = div.querySelectorAll(".inflation-adjusted-price");
+
+      // Verify simple prices are captured correctly (not confused with suffixes)
+      const prices = Array.from(spans).map(s => s.getAttribute("data-original-price"));
+      assert.ok(prices.includes("$5"), `Expected $5, got ${prices}`);
+      assert.ok(prices.includes("$8"), `Expected $8, got ${prices}`);
+
+      // Verify calculations are on small amounts (not millions)
+      // $5 in 2000 = ~$9.29 in 2025, $8 in 2000 = ~$14.87 in 2025
+      const adjusted = Array.from(spans).map(s => s.getAttribute("data-adjusted-price"));
+      assert.ok(adjusted.some(p => p.includes("$9") && !p.toUpperCase().includes("M")),
+        `Expected ~$9 (not millions), got ${adjusted}`);
+      assert.ok(adjusted.some(p => (p.includes("$14") || p.includes("$15")) && !p.toUpperCase().includes("M")),
+        `Expected ~$14-15 (not millions), got ${adjusted}`);
+    });
+
+    it("handles suffix + USD combination", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "Contract was $3M USD in 2000";
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 1);
+
+      const span = div.querySelector(".inflation-adjusted-price");
+      const originalPrice = span.getAttribute("data-original-price");
+      // Should capture suffix but may or may not include USD (implementation dependent)
+      assert.ok(originalPrice.includes("$3M"),
+        `Expected price to include $3M, got ${originalPrice}`);
+
+      // Verify calculation is on 3 million
+      // $3M in 2000 = ~$5.57M in 2025 (3000000 * 320.0/172.2)
+      const adjustedPrice = span.getAttribute("data-adjusted-price");
+      assert.ok(adjustedPrice.includes("$5") && adjustedPrice.toUpperCase().includes("M"),
+        `Expected ~$5.5M inflation-adjusted price, got ${adjustedPrice}`);
+    });
   });
 });
