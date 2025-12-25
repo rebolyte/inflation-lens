@@ -3,7 +3,7 @@ import { existsSync, statSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { sync as globSync } from "glob";
 
-const PATTERN = "./src/**/*.test.ts";
+const PATTERN = "./src/**/*.test.js";
 
 const { values, positionals, tokens } = parseArgs({
   options: {
@@ -15,30 +15,21 @@ const { values, positionals, tokens } = parseArgs({
 });
 
 const passthroughArgs = tokens
-  .filter(
-    (
-      t
-    ): t is typeof t & {
-      kind: "option";
-      rawName: string;
-      name: string;
-      value?: string;
-    } => t.kind === "option" && t.name !== "debug"
-  )
+  .filter((t) => t.kind === "option" && t.name !== "debug")
   .map(
     (t) =>
       (t.rawName.length === 2 ? t.rawName : `--${t.name}`) +
       (t.value !== undefined ? `=${t.value}` : "")
   );
 
-let matches: string[] = [];
+let matches = [];
 if (positionals.length > 0) {
   for (const pattern of positionals) {
     const dirPath = `./src/${pattern}`;
     if (existsSync(dirPath) && statSync(dirPath).isDirectory()) {
-      matches.push(...globSync(`${dirPath}/**/*.test.ts`));
+      matches.push(...globSync(`${dirPath}/**/*.test.js`));
     } else {
-      matches.push(...globSync(`./src/**/*${pattern}*.test.ts`));
+      matches.push(...globSync(`./src/**/*${pattern}*.test.js`));
     }
   }
 } else {

@@ -2,9 +2,9 @@ import { it, beforeEach, afterEach, describe } from "node:test";
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
 
-let dom: JSDOM;
-let originalWindow: any;
-let originalDocument: any;
+let dom;
+let originalWindow;
+let originalDocument;
 
 describe("date-detector", () => {
   beforeEach(() => {
@@ -13,8 +13,8 @@ describe("date-detector", () => {
     });
     originalWindow = global.window;
     originalDocument = global.document;
-    global.window = dom.window as any;
-    global.document = dom.window.document as any;
+    global.window = dom.window;
+    global.document = dom.window.document;
   });
 
   afterEach(() => {

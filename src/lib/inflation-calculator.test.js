@@ -4,12 +4,12 @@ import assert from "node:assert";
 // Mock chrome runtime
 global.chrome = {
   runtime: {
-    getURL: (path: string) => `/fake/${path}`,
+    getURL: (path) => `/fake/${path}`,
   },
-} as any;
+};
 
 // Mock fetch
-global.fetch = async (url: string) => {
+global.fetch = async (url) => {
   if (url.includes("cpi-data.json")) {
     return {
       json: async () => ({
@@ -20,7 +20,7 @@ global.fetch = async (url: string) => {
           2024: 310.3,
         },
       }),
-    } as Response;
+    };
   }
   throw new Error("Unknown URL");
 };
