@@ -3,6 +3,33 @@ import assert from "node:assert";
 import { JSDOM } from "jsdom";
 import { shouldSkipNode, replacePricesInNode, findAndReplacePrices } from "../../content/price-replacer.js";
 
+// Set up mocks for real calculator before import
+global.chrome = {
+  runtime: {
+    getURL: (path) => `/fake/${path}`,
+  },
+};
+
+global.fetch = async (url) => {
+  if (url.includes("cpi-data.json")) {
+    return {
+      json: async () => ({
+        data: {
+          1913: 9.9,
+          2000: 172.2,
+          2020: 258.8,
+          2024: 310.3,
+          2025: 320.0, // Current year for tests
+        },
+      }),
+    };
+  }
+  throw new Error("Unknown URL");
+};
+
+// Import real calculator for integration tests
+import { loadCPIData, calculateInflation, formatPrice, parsePrice } from "../../lib/inflation-calculator.js";
+
 let dom;
 let originalDocument;
 
@@ -311,6 +338,98 @@ describe("price-replacer", () => {
 
       const count = findAndReplacePrices(div, 2000, mockCalculator);
       assert.strictEqual(count, 0);
+    });
+  });
+
+  describe("integration with real calculator", () => {
+    let realCalculator;
+
+    beforeEach(async () => {
+      // Load CPI data for the real calculator
+      await loadCPIData();
+      realCalculator = { parsePrice, calculateInflation, formatPrice };
+    });
+
+    it("replaces prices with realistic inflation adjustments", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "In 2000, this cost $100";
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 1, "Should find one price");
+
+      const span = div.querySelector(".inflation-adjusted-price");
+      assert.ok(span, "Should create inflation-adjusted span");
+      assert.strictEqual(span.getAttribute("data-original-price"), "$100");
+      assert.strictEqual(span.getAttribute("data-original-year"), "2000");
+
+      // Verify it calculated real inflation, not mock 50%
+      // $100 in 2000 = $185.83 in 2025 (320.0/172.2 * 100)
+      const adjustedPrice = span.getAttribute("data-adjusted-price");
+      assert.ok(adjustedPrice.includes("$185") || adjustedPrice.includes("$186"),
+        `Expected ~$185-186 inflation-adjusted price, got ${adjustedPrice}`);
+    });
+
+    it("handles multiple prices with real calculations", () => {
+      const div = dom.window.document.createElement("div");
+      div.innerHTML = `
+        <p>Back in 2000, a coffee was $2 and a sandwich was $5.</p>
+        <p>By 2020, prices had changed significantly.</p>
+      `;
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 2, "Should find two prices");
+
+      const spans = div.querySelectorAll(".inflation-adjusted-price");
+      assert.strictEqual(spans.length, 2);
+
+      // Verify both use real inflation calculations
+      spans.forEach(span => {
+        assert.strictEqual(span.getAttribute("data-original-year"), "2000");
+        assert.ok(span.getAttribute("data-adjusted-price"),
+          "Should have adjusted price");
+      });
+    });
+
+    it("respects skip rules with real calculator", () => {
+      const div = dom.window.document.createElement("div");
+      div.innerHTML = `
+        <p>Regular price: $100</p>
+        <code>const price = $100;</code>
+        <div data-no-inflation>Current: $100</div>
+      `;
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      // Should only process the first $100, not in code or data-no-inflation
+      assert.strictEqual(count, 1, "Should skip code and data-no-inflation");
+    });
+
+    it("handles prices with suffixes using real calculator", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "The budget was $5M in 2000";
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 1);
+
+      const span = div.querySelector(".inflation-adjusted-price");
+      const originalPrice = span.getAttribute("data-original-price");
+      // Should capture the price with suffix
+      assert.ok(originalPrice.includes("$5") || originalPrice.includes("$5M"),
+        `Expected price to include $5, got ${originalPrice}`);
+
+      // Verify inflation was calculated
+      const adjustedPrice = span.getAttribute("data-adjusted-price");
+      assert.ok(adjustedPrice, "Should have adjusted price");
+      // If it parsed as 5M, result should be ~9M, if parsed as 5, should be ~9
+      assert.ok(adjustedPrice.includes("$9") || adjustedPrice.includes("$8") || adjustedPrice.includes("$7"),
+        `Expected inflated price, got ${adjustedPrice}`);
     });
   });
 });

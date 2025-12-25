@@ -1,4 +1,4 @@
-import { it, beforeEach, describe } from "node:test";
+import { it, beforeEach, afterEach, describe } from "node:test";
 import assert from "node:assert";
 
 // Mock chrome runtime
@@ -18,6 +18,7 @@ global.fetch = async (url) => {
           2000: 172.2,
           2020: 258.8,
           2024: 310.3,
+          2025: 320.0,
         },
       }),
     };
@@ -212,6 +213,52 @@ describe("inflation-calculator", () => {
       const data1 = await loadCPIData();
       const data2 = await loadCPIData();
       assert.strictEqual(data1, data2);
+    });
+  });
+
+  describe("error handling", () => {
+    it("calculateInflation returns null when CPI data not loaded", () => {
+      // Test with missing year in CPI data (1999 not in our mock data)
+      const result = calculateInflation(100, 1999, 2020);
+      assert.strictEqual(result, null, "Should return null for missing year data");
+    });
+
+    it("calculateInflation returns null when fromYear is missing", () => {
+      const result = calculateInflation(100, 1850, 2020);
+      assert.strictEqual(result, null, "Should return null when fromYear not in CPI data");
+    });
+
+    it("calculateInflation returns null when toYear is missing", () => {
+      const result = calculateInflation(100, 2000, 2100);
+      assert.strictEqual(result, null, "Should return null when toYear not in CPI data");
+    });
+
+    it("parsePrice handles empty string", () => {
+      const result = parsePrice("");
+      assert.ok(isNaN(result), "Empty string should return NaN");
+    });
+
+    it("parsePrice handles invalid text", () => {
+      const result = parsePrice("not a price");
+      assert.ok(isNaN(result), "Invalid input should return NaN");
+    });
+
+    it("formatPrice handles zero", () => {
+      assert.strictEqual(formatPrice(0), "$0.00", "Should format zero");
+    });
+
+    it("formatPrice handles negative numbers", () => {
+      const result = formatPrice(-100);
+      assert.ok(result.includes("-100"), "Should format negative numbers");
+    });
+
+    it("formatPrice handles very small amounts", () => {
+      assert.strictEqual(formatPrice(0.001), "$0.00", "Should round very small amounts");
+    });
+
+    it("formatPrice handles very large numbers", () => {
+      const result = formatPrice(999999999999);
+      assert.ok(result.includes("B"), "Should use B suffix for billions");
     });
   });
 });
