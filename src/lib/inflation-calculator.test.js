@@ -55,6 +55,22 @@ describe("inflation-calculator", () => {
       assert.strictEqual(parsePrice("$1B"), 1000000000);
       assert.strictEqual(parsePrice("$2.5b"), 2500000000);
     });
+
+    it("handles edge case amounts", () => {
+      assert.strictEqual(parsePrice("$0.01"), 0.01);
+      assert.strictEqual(parsePrice("$0.99"), 0.99);
+      assert.strictEqual(parsePrice("$999,999,999"), 999999999);
+    });
+
+    it("parses amounts without dollar sign", () => {
+      assert.strictEqual(parsePrice("100"), 100);
+      assert.strictEqual(parsePrice("1,234.56"), 1234.56);
+    });
+
+    it("handles malformed strings gracefully", () => {
+      assert.ok(isNaN(parsePrice("invalid")));
+      assert.ok(isNaN(parsePrice("")));
+    });
   });
 
   describe("formatPrice", () => {
@@ -78,6 +94,17 @@ describe("inflation-calculator", () => {
       assert.strictEqual(formatPrice(1000000000), "$1B");
       assert.strictEqual(formatPrice(1500000000), "$1.5B");
       assert.strictEqual(formatPrice(2000000000), "$2B");
+    });
+
+    it("handles edge case amounts", () => {
+      assert.strictEqual(formatPrice(0), "$0.00");
+      assert.strictEqual(formatPrice(0.01), "$0.01");
+      assert.strictEqual(formatPrice(999.99), "$999.99");
+      assert.strictEqual(formatPrice(999999), "$999,999");
+    });
+
+    it("formats very large numbers correctly", () => {
+      assert.strictEqual(formatPrice(1e12), "$1000B");
     });
   });
 
@@ -105,6 +132,32 @@ describe("inflation-calculator", () => {
       const adjusted = calculateInflation(1000000, 2000, 2020);
       assert.ok(adjusted !== null);
       assert.strictEqual(adjusted, 1502903.6);
+    });
+
+    it("handles small amounts correctly", () => {
+      const adjusted = calculateInflation(0.01, 2000, 2020);
+      assert.ok(adjusted !== null);
+      assert.strictEqual(adjusted, 0.02); // Rounds to 2 decimal places
+    });
+
+    it("calculates deflation (backward in time)", () => {
+      const adjusted = calculateInflation(100, 2020, 2000);
+      assert.ok(adjusted !== null);
+      // Should be less than original
+      assert.ok(adjusted < 100);
+    });
+
+    it("returns same value for same year", () => {
+      const adjusted = calculateInflation(100, 2020, 2020);
+      assert.ok(adjusted !== null);
+      assert.strictEqual(adjusted, 100);
+    });
+
+    it("handles very old years", () => {
+      const adjusted = calculateInflation(100, 1913, 2024);
+      assert.ok(adjusted !== null);
+      // Should be much higher due to century of inflation
+      assert.ok(adjusted > 1000);
     });
   });
 
