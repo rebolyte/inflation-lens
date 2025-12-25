@@ -4,7 +4,7 @@ const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'CODE', 'PRE', 'NOSCRIPT', 'TEXTAR
 
 const processedNodes = new WeakSet();
 
-function shouldSkipNode(node) {
+export function shouldSkipNode(node) {
   if (!node || !node.parentElement) return true;
 
   let element = node.parentElement;
@@ -18,7 +18,7 @@ function shouldSkipNode(node) {
   return false;
 }
 
-function replacePricesInNode(textNode, year, calculator) {
+export function replacePricesInNode(textNode, year, calculator) {
   if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return 0;
   if (processedNodes.has(textNode)) return 0;
   if (shouldSkipNode(textNode)) return 0;
@@ -80,7 +80,7 @@ function replacePricesInNode(textNode, year, calculator) {
   return replacementCount;
 }
 
-function findAndReplacePrices(rootElement, year, calculator) {
+export function findAndReplacePrices(rootElement, year, calculator) {
   if (!rootElement || !year || !calculator) return 0;
 
   const walker = document.createTreeWalker(

@@ -21,12 +21,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": [
-        "lib/inflation-calculator.js",
-        "content/date-detector.js",
-        "content/price-replacer.js",
-        "content/inflation-detector.js"
-      ],
+      "js": ["content/loader.js"],
       "css": ["content/inflation.css"],
       "run_at": "document_idle"
     }
@@ -36,7 +31,13 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["data/cpi-data.json"],
+      "resources": [
+        "data/cpi-data.json",
+        "lib/inflation-calculator.js",
+        "content/date-detector.js",
+        "content/price-replacer.js",
+        "content/inflation-detector.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ]
