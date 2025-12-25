@@ -1,6 +1,7 @@
 import { it, beforeEach, afterEach, describe } from "node:test";
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
+import { shouldSkipNode, replacePricesInNode, findAndReplacePrices } from "../../content/price-replacer.js";
 
 let dom;
 let originalDocument;
@@ -28,8 +29,7 @@ describe("price-replacer", () => {
   });
 
   describe("PRICE_REGEX pattern matching", () => {
-    it("matches simple dollar amounts", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("matches simple dollar amounts", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "The item costs $100";
 
@@ -38,8 +38,7 @@ describe("price-replacer", () => {
       assert.ok(div.innerHTML.includes("inflation-adjusted-price"));
     });
 
-    it("matches prices with cents", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("matches prices with cents", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Price: $99.99";
 
@@ -47,8 +46,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 1);
     });
 
-    it("matches prices with thousands separators", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("matches prices with thousands separators", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Cost was $1,234.56";
 
@@ -56,8 +54,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 1);
     });
 
-    it("matches prices with K suffix", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("matches prices with K suffix", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Budget: $5K";
 
@@ -65,8 +62,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 1);
     });
 
-    it("matches prices with M suffix", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("matches prices with M suffix", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Value: $2.5M";
 
@@ -74,8 +70,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 1);
     });
 
-    it("matches prices with B suffix", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("matches prices with B suffix", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Deal worth $1.2B";
 
@@ -83,8 +78,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 1);
     });
 
-    it("matches prices with USD suffix", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("matches prices with USD suffix", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Price: $100 USD";
 
@@ -92,8 +86,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 1);
     });
 
-    it("matches multiple prices in same text", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("matches multiple prices in same text", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Prices range from $10 to $100 or even $1,000";
 
@@ -101,8 +94,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 3);
     });
 
-    it("does not match invalid patterns", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("does not match invalid patterns", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Model: S100, Year: 2020, Code: USD123";
 
@@ -112,8 +104,7 @@ describe("price-replacer", () => {
   });
 
   describe("shouldSkipNode", () => {
-    it("skips nodes in SCRIPT tags", async () => {
-      const { shouldSkipNode } = await import("../../content/price-replacer.js");
+    it("skips nodes in SCRIPT tags", () => {
       const script = dom.window.document.createElement("script");
       script.textContent = "$100";
       dom.window.document.body.appendChild(script);
@@ -122,8 +113,7 @@ describe("price-replacer", () => {
       assert.strictEqual(shouldSkipNode(textNode), true);
     });
 
-    it("skips nodes in STYLE tags", async () => {
-      const { shouldSkipNode } = await import("../../content/price-replacer.js");
+    it("skips nodes in STYLE tags", () => {
       const style = dom.window.document.createElement("style");
       style.textContent = "$100";
       dom.window.document.body.appendChild(style);
@@ -132,8 +122,7 @@ describe("price-replacer", () => {
       assert.strictEqual(shouldSkipNode(textNode), true);
     });
 
-    it("skips nodes in CODE tags", async () => {
-      const { shouldSkipNode } = await import("../../content/price-replacer.js");
+    it("skips nodes in CODE tags", () => {
       const code = dom.window.document.createElement("code");
       code.textContent = "$100";
       dom.window.document.body.appendChild(code);
@@ -142,8 +131,7 @@ describe("price-replacer", () => {
       assert.strictEqual(shouldSkipNode(textNode), true);
     });
 
-    it("skips nodes in PRE tags", async () => {
-      const { shouldSkipNode } = await import("../../content/price-replacer.js");
+    it("skips nodes in PRE tags", () => {
       const pre = dom.window.document.createElement("pre");
       pre.textContent = "$100";
       dom.window.document.body.appendChild(pre);
@@ -152,8 +140,7 @@ describe("price-replacer", () => {
       assert.strictEqual(shouldSkipNode(textNode), true);
     });
 
-    it("skips nodes with data-no-inflation attribute", async () => {
-      const { shouldSkipNode } = await import("../../content/price-replacer.js");
+    it("skips nodes with data-no-inflation attribute", () => {
       const div = dom.window.document.createElement("div");
       div.setAttribute("data-no-inflation", "true");
       div.textContent = "$100";
@@ -163,8 +150,7 @@ describe("price-replacer", () => {
       assert.strictEqual(shouldSkipNode(textNode), true);
     });
 
-    it("skips nodes with inflation-adjusted-price class", async () => {
-      const { shouldSkipNode } = await import("../../content/price-replacer.js");
+    it("skips nodes with inflation-adjusted-price class", () => {
       const span = dom.window.document.createElement("span");
       span.className = "inflation-adjusted-price";
       span.textContent = "$100";
@@ -174,8 +160,7 @@ describe("price-replacer", () => {
       assert.strictEqual(shouldSkipNode(textNode), true);
     });
 
-    it("does not skip regular text nodes", async () => {
-      const { shouldSkipNode } = await import("../../content/price-replacer.js");
+    it("does not skip regular text nodes", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "$100";
       dom.window.document.body.appendChild(div);
@@ -184,8 +169,7 @@ describe("price-replacer", () => {
       assert.strictEqual(shouldSkipNode(textNode), false);
     });
 
-    it("skips nodes in nested excluded tags", async () => {
-      const { shouldSkipNode } = await import("../../content/price-replacer.js");
+    it("skips nodes in nested excluded tags", () => {
       const div = dom.window.document.createElement("div");
       const code = dom.window.document.createElement("code");
       const span = dom.window.document.createElement("span");
@@ -200,8 +184,7 @@ describe("price-replacer", () => {
   });
 
   describe("replacePricesInNode", () => {
-    it("replaces price with span containing data attributes", async () => {
-      const { replacePricesInNode } = await import("../../content/price-replacer.js");
+    it("replaces price with span containing data attributes", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Price: $100";
       dom.window.document.body.appendChild(div);
@@ -217,8 +200,7 @@ describe("price-replacer", () => {
       assert.ok(span.getAttribute("data-adjusted-price"));
     });
 
-    it("preserves text before and after price", async () => {
-      const { replacePricesInNode } = await import("../../content/price-replacer.js");
+    it("preserves text before and after price", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "The price was $100 yesterday";
       dom.window.document.body.appendChild(div);
@@ -230,8 +212,7 @@ describe("price-replacer", () => {
       assert.ok(div.textContent.includes("yesterday"));
     });
 
-    it("handles multiple prices in one text node", async () => {
-      const { replacePricesInNode } = await import("../../content/price-replacer.js");
+    it("handles multiple prices in one text node", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "$50 or $100";
       dom.window.document.body.appendChild(div);
@@ -244,16 +225,14 @@ describe("price-replacer", () => {
       assert.strictEqual(spans.length, 2);
     });
 
-    it("returns 0 for non-text nodes", async () => {
-      const { replacePricesInNode } = await import("../../content/price-replacer.js");
+    it("returns 0 for non-text nodes", () => {
       const div = dom.window.document.createElement("div");
 
       const count = replacePricesInNode(div, 2000, mockCalculator);
       assert.strictEqual(count, 0);
     });
 
-    it("returns 0 for text without prices", async () => {
-      const { replacePricesInNode } = await import("../../content/price-replacer.js");
+    it("returns 0 for text without prices", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "No prices here";
       dom.window.document.body.appendChild(div);
@@ -263,8 +242,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 0);
     });
 
-    it("does not process same node twice", async () => {
-      const { replacePricesInNode } = await import("../../content/price-replacer.js");
+    it("does not process same node twice", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "$100";
       dom.window.document.body.appendChild(div);
@@ -279,8 +257,7 @@ describe("price-replacer", () => {
   });
 
   describe("findAndReplacePrices", () => {
-    it("processes all text nodes in tree", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("processes all text nodes in tree", () => {
       const div = dom.window.document.createElement("div");
       div.innerHTML = "<p>$100</p><p>$200</p><p>$300</p>";
 
@@ -288,8 +265,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 3);
     });
 
-    it("skips excluded elements", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("skips excluded elements", () => {
       const div = dom.window.document.createElement("div");
       div.innerHTML = "<p>$100</p><code>$200</code><p>$300</p>";
 
@@ -297,8 +273,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 2); // Should skip the code block
     });
 
-    it("handles nested elements", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("handles nested elements", () => {
       const div = dom.window.document.createElement("div");
       div.innerHTML = "<p>Price: <strong>$100</strong> or <em>$200</em></p>";
 
@@ -306,16 +281,13 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 2);
     });
 
-    it("returns 0 for invalid inputs", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
-
+    it("returns 0 for invalid inputs", () => {
       assert.strictEqual(findAndReplacePrices(null, 2000, mockCalculator), 0);
       assert.strictEqual(findAndReplacePrices(dom.window.document.body, null, mockCalculator), 0);
       assert.strictEqual(findAndReplacePrices(dom.window.document.body, 2000, null), 0);
     });
 
-    it("handles complex real-world HTML", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("handles complex real-world HTML", () => {
       const div = dom.window.document.createElement("div");
       div.innerHTML = `
         <article>
@@ -334,8 +306,7 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 4);
     });
 
-    it("returns correct count for empty elements", async () => {
-      const { findAndReplacePrices } = await import("../../content/price-replacer.js");
+    it("returns correct count for empty elements", () => {
       const div = dom.window.document.createElement("div");
 
       const count = findAndReplacePrices(div, 2000, mockCalculator);

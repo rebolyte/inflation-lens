@@ -25,10 +25,8 @@ global.fetch = async (url) => {
   throw new Error("Unknown URL");
 };
 
-// Import after mocking
-const { loadCPIData, calculateInflation, formatPrice, parsePrice } = await import(
-  "../../lib/inflation-calculator.js"
-);
+// Static import - safe because module doesn't access globals at top level
+import { loadCPIData, calculateInflation, formatPrice, parsePrice } from "../../lib/inflation-calculator.js";
 
 describe("inflation-calculator", () => {
   beforeEach(async () => {
