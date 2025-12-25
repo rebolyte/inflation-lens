@@ -420,16 +420,16 @@ describe("price-replacer", () => {
 
       const span = div.querySelector(".inflation-adjusted-price");
       const originalPrice = span.getAttribute("data-original-price");
-      // Should capture the price with suffix
-      assert.ok(originalPrice.includes("$5") || originalPrice.includes("$5M"),
-        `Expected price to include $5, got ${originalPrice}`);
+      // Should capture the full price including suffix
+      assert.strictEqual(originalPrice, "$5M",
+        `Expected $5M, got ${originalPrice}`);
 
-      // Verify inflation was calculated
+      // Verify inflation was calculated on 5 million, not 5
+      // $5M in 2000 = ~$9.29M in 2025 (5000000 * 320.0/172.2)
       const adjustedPrice = span.getAttribute("data-adjusted-price");
       assert.ok(adjustedPrice, "Should have adjusted price");
-      // If it parsed as 5M, result should be ~9M, if parsed as 5, should be ~9
-      assert.ok(adjustedPrice.includes("$9") || adjustedPrice.includes("$8") || adjustedPrice.includes("$7"),
-        `Expected inflated price, got ${adjustedPrice}`);
+      assert.ok(adjustedPrice.includes("$9") && adjustedPrice.toUpperCase().includes("M"),
+        `Expected ~$9M inflation-adjusted price, got ${adjustedPrice}`);
     });
   });
 });
