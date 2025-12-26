@@ -8,6 +8,7 @@ test.describe('Price replacement functionality', () => {
     const contentPage = new ContentPage(page);
 
     // Create a test page with prices from 2010
+    // This sanity checks that price adjustment works in a real browser (vs JSDOM in unit tests)
     await contentPage.createTestPageWithContent(
       ['This costs $100.00', 'Sale price: $50.00', 'Premium option: $250.00'],
       2010
@@ -22,40 +23,6 @@ test.describe('Price replacement functionality', () => {
     expect(priceData.original).toBeTruthy();
     expect(priceData.adjusted).toBeTruthy();
     expect(priceData.year).toBe('2010');
-
-    await page.close();
-  });
-
-  test('should handle pages without a detected year', async ({ context }) => {
-    const page = await context.newPage();
-    const contentPage = new ContentPage(page);
-
-    // Create a test page without a year (should use current year)
-    await contentPage.createTestPageWithContent(['Price: $100.00']);
-
-    // Since it's using current year, prices shouldn't be adjusted
-    const count = await contentPage.getAdjustedPriceCount();
-    expect(count).toBe(0);
-
-    await page.close();
-  });
-
-  test('should replace multiple prices on the same page', async ({ context }) => {
-    const page = await context.newPage();
-    const contentPage = new ContentPage(page);
-
-    // Create a page with multiple prices
-    const prices = [
-      'Basic plan: $10.00',
-      'Standard plan: $25.00',
-      'Premium plan: $50.00',
-      'Enterprise: $100.00',
-    ];
-
-    await contentPage.createTestPageWithContent(prices, 2015);
-
-    const count = await contentPage.getAdjustedPriceCount();
-    expect(count).toBe(4);
 
     await page.close();
   });
@@ -127,26 +94,6 @@ test.describe('Price replacement functionality', () => {
 
     await contentPageHandle.close();
     await popupPageHandle.close();
-  });
-
-  test('should handle various price formats', async ({ context }) => {
-    const page = await context.newPage();
-    const contentPage = new ContentPage(page);
-
-    // Test different price formats
-    const prices = [
-      '$100',
-      '$1,000.00',
-      '$50.99',
-      '$1,234.56',
-    ];
-
-    await contentPage.createTestPageWithContent(prices, 2010);
-
-    const count = await contentPage.getAdjustedPriceCount();
-    expect(count).toBe(4);
-
-    await page.close();
   });
 
   test('should show/hide adjusted prices when toggling enabled state', async ({
