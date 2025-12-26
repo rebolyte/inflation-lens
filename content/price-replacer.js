@@ -78,6 +78,7 @@ export function replacePricesInNode(textNode, year, calculator) {
     if (adjusted && adjusted !== priceNum) {
       const span = document.createElement('span');
       span.className = 'inflation-adjusted-price';
+      span.setAttribute('data-testid', 'adjusted-price');
       span.textContent = m.priceText;
       span.setAttribute('data-original-price', m.priceText);
       span.setAttribute('data-original-year', String(year));

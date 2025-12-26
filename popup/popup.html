@@ -16,18 +16,18 @@
     <div class="content">
       <div class="stats">
         <p class="stat-line">
-          <strong x-text="priceCount"></strong>
+          <strong data-testid="price-count" x-text="priceCount"></strong>
           <span x-text="priceCount === 1 ? ' price adjusted' : ' prices adjusted'"></span>
         </p>
         <p class="stat-line small">
-          <span x-show="detectedYear" x-text="'Page from ' + detectedYear"></span>
+          <span data-testid="detected-year" x-show="detectedYear" x-text="'Page from ' + detectedYear"></span>
           <span x-show="!detectedYear">Using current year</span>
         </p>
       </div>
 
       <div class="controls">
         <label class="toggle-label">
-          <input type="checkbox" x-model="enabled" @change="toggleEnabled" />
+          <input data-testid="enable-toggle" type="checkbox" x-model="enabled" @change="toggleEnabled" />
           <span>Enable inflation adjustment</span>
         </label>
       </div>

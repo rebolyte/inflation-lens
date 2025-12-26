@@ -29,7 +29,7 @@ export class ContentPage extends BasePage {
   async waitForPriceProcessing(expectedCount) {
     if (expectedCount && expectedCount > 0) {
       // Wait for at least one adjusted price to appear
-      await this.page.waitForSelector('.inflation-adjusted-price', { timeout: 5000 });
+      await this.page.getByTestId('adjusted-price').first().waitFor({ timeout: 5000 });
     } else {
       // Just wait for the page to stabilize
       await this.page.waitForLoadState('networkidle');
@@ -41,7 +41,7 @@ export class ContentPage extends BasePage {
    * @returns {import('@playwright/test').Locator}
    */
   getAdjustedPrices() {
-    return this.page.locator('.inflation-adjusted-price');
+    return this.page.getByTestId('adjusted-price');
   }
 
   /**
@@ -165,7 +165,7 @@ export class ContentPage extends BasePage {
    * @returns {Promise<void>}
    */
   async waitForPricesToDisappear() {
-    await this.page.waitForSelector('.inflation-adjusted-price', { state: 'detached', timeout: 5000 }).catch(() => {
+    await this.page.getByTestId('adjusted-price').first().waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
       // Already gone, that's fine
     });
   }

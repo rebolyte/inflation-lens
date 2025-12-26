@@ -27,7 +27,7 @@ export class PopupPage extends BasePage {
    * @returns {Promise<number>}
    */
   async getPriceCount() {
-    const countText = await this.page.locator('.stat-line strong').first().textContent();
+    const countText = await this.page.getByTestId('price-count').textContent();
     return parseInt(countText || '0', 10);
   }
 
@@ -36,7 +36,7 @@ export class PopupPage extends BasePage {
    * @returns {Promise<string | null>}
    */
   async getDetectedYear() {
-    const yearElement = await this.page.locator('.stat-line.small span[x-show="detectedYear"]');
+    const yearElement = this.page.getByTestId('detected-year');
     const isVisible = await yearElement.isVisible();
 
     if (!isVisible) {
@@ -53,7 +53,7 @@ export class PopupPage extends BasePage {
    * @returns {Promise<boolean>}
    */
   async isEnabled() {
-    const checkbox = this.page.locator('input[type="checkbox"]');
+    const checkbox = this.page.getByTestId('enable-toggle');
     return await checkbox.isChecked();
   }
 
@@ -62,7 +62,7 @@ export class PopupPage extends BasePage {
    * @returns {Promise<void>}
    */
   async toggleEnabled() {
-    const checkbox = this.page.locator('input[type="checkbox"]');
+    const checkbox = this.page.getByTestId('enable-toggle');
     const currentState = await checkbox.isChecked();
     await checkbox.click();
     // Wait for state to change
@@ -97,7 +97,7 @@ export class PopupPage extends BasePage {
    * @returns {Promise<void>}
    */
   async verifyLoaded() {
-    await this.page.waitForSelector('.container');
-    await this.page.waitForSelector('.header h1:has-text("Inflation Lens")');
+    await this.page.getByRole('heading', { name: 'Inflation Lens' }).waitFor();
+    await this.page.getByTestId('price-count').waitFor();
   }
 }
