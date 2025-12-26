@@ -59,12 +59,10 @@ test.describe('Popup functionality', () => {
 
     // 3. Bring content page to front to activate the tab
     await contentPage.bringToFront();
-    // Wait for the extension to process the page
-    await contentPageHandle.waitForTimeout(1500);
 
     // 4. Bring popup to front to check stats
     await popupPage.bringToFront();
-    // Reload popup to get fresh stats
+    // Reload popup to get fresh stats from the active tab
     await popupPageHandle.reload();
     await popupPage.verifyLoaded();
 

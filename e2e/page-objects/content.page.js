@@ -18,8 +18,22 @@ export class ContentPage extends BasePage {
   async waitForContentScript() {
     // Wait for the page to be fully loaded
     await this.page.waitForLoadState('domcontentloaded');
-    // Give the content script time to initialize
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Wait for prices to be adjusted (or for processing to complete)
+   * @param {number} [expectedCount] - Expected number of adjusted prices
+   * @returns {Promise<void>}
+   */
+  async waitForPriceProcessing(expectedCount) {
+    if (expectedCount && expectedCount > 0) {
+      // Wait for at least one adjusted price to appear
+      await this.page.waitForSelector('.inflation-adjusted-price', { timeout: 5000 });
+    } else {
+      // Just wait for the page to stabilize
+      await this.page.waitForLoadState('networkidle');
+    }
   }
 
   /**
@@ -140,5 +154,19 @@ export class ContentPage extends BasePage {
     const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
     await this.goto(dataUrl);
     await this.waitForContentScript();
+    // If we have a year, expect prices to be adjusted
+    if (year) {
+      await this.waitForPriceProcessing(prices.length);
+    }
+  }
+
+  /**
+   * Wait for adjusted prices to disappear (when disabled)
+   * @returns {Promise<void>}
+   */
+  async waitForPricesToDisappear() {
+    await this.page.waitForSelector('.inflation-adjusted-price', { state: 'detached', timeout: 5000 }).catch(() => {
+      // Already gone, that's fine
+    });
   }
 }

@@ -13,9 +13,6 @@ test.describe('Price replacement functionality', () => {
       2010
     );
 
-    // Wait for content script to process
-    await page.waitForTimeout(1500);
-
     // Verify prices were adjusted
     const count = await contentPage.getAdjustedPriceCount();
     expect(count).toBeGreaterThan(0);
@@ -35,9 +32,6 @@ test.describe('Price replacement functionality', () => {
 
     // Create a test page without a year (should use current year)
     await contentPage.createTestPageWithContent(['Price: $100.00']);
-
-    // Wait for content script to process
-    await page.waitForTimeout(1500);
 
     // Since it's using current year, prices shouldn't be adjusted
     const count = await contentPage.getAdjustedPriceCount();
@@ -59,7 +53,6 @@ test.describe('Price replacement functionality', () => {
     ];
 
     await contentPage.createTestPageWithContent(prices, 2015);
-    await page.waitForTimeout(1500);
 
     const count = await contentPage.getAdjustedPriceCount();
     expect(count).toBeGreaterThanOrEqual(3); // Should find at least 3 prices
@@ -77,10 +70,6 @@ test.describe('Price replacement functionality', () => {
     const page2 = await context.newPage();
     const contentPage2 = new ContentPage(page2);
     await contentPage2.createTestPageWithContent(['Tab 2: $100.00'], 2015);
-
-    // Wait for both to process
-    await page1.waitForTimeout(1500);
-    await page2.waitForTimeout(1500);
 
     // Verify first tab
     await contentPage1.bringToFront();
@@ -153,11 +142,60 @@ test.describe('Price replacement functionality', () => {
     ];
 
     await contentPage.createTestPageWithContent(prices, 2010);
-    await page.waitForTimeout(1500);
 
     const count = await contentPage.getAdjustedPriceCount();
     expect(count).toBeGreaterThan(0);
 
     await page.close();
+  });
+
+  test('should show/hide adjusted prices when toggling enabled state', async ({
+    context,
+    extensionId,
+  }) => {
+    // 1. Load a page with prices
+    const contentPageHandle = await context.newPage();
+    const contentPage = new ContentPage(contentPageHandle);
+    await contentPage.createTestPageWithContent(
+      ['Product A: $100.00', 'Product B: $50.00', 'Product C: $25.00'],
+      2010
+    );
+
+    // 2. Verify prices are adjusted initially
+    const initialCount = await contentPage.getAdjustedPriceCount();
+    expect(initialCount).toBeGreaterThan(0);
+
+    // 3. Open popup and disable extension
+    const popupPageHandle = await context.newPage();
+    const popupPage = new PopupPage(popupPageHandle, extensionId);
+    await popupPage.open();
+    await popupPage.setEnabled(false);
+
+    // 4. Bring content page to front
+    await contentPage.bringToFront();
+
+    // 5. Wait for prices to be removed/hidden
+    await contentPage.waitForPricesToDisappear();
+
+    // 6. Verify adjusted prices are gone
+    const disabledCount = await contentPage.getAdjustedPriceCount();
+    expect(disabledCount).toBe(0);
+
+    // 7. Re-enable through popup
+    await popupPage.bringToFront();
+    await popupPage.setEnabled(true);
+
+    // 8. Bring content page to front
+    await contentPage.bringToFront();
+
+    // 9. Wait for prices to reappear
+    await contentPage.waitForPriceProcessing(3);
+
+    // 10. Verify prices are adjusted again
+    const enabledCount = await contentPage.getAdjustedPriceCount();
+    expect(enabledCount).toBeGreaterThan(0);
+
+    await contentPageHandle.close();
+    await popupPageHandle.close();
   });
 });

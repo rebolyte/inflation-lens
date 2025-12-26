@@ -19,8 +19,7 @@ export class PopupPage extends BasePage {
    */
   async open() {
     await this.goto(`chrome-extension://${this.extensionId}/popup/popup.html`);
-    // Wait for Alpine.js to initialize
-    await this.page.waitForTimeout(500);
+    await this.verifyLoaded();
   }
 
   /**
@@ -64,9 +63,21 @@ export class PopupPage extends BasePage {
    */
   async toggleEnabled() {
     const checkbox = this.page.locator('input[type="checkbox"]');
+    const currentState = await checkbox.isChecked();
     await checkbox.click();
-    // Wait for state to update
-    await this.page.waitForTimeout(100);
+    // Wait for state to change
+    await checkbox.evaluate((el, expected) => {
+      return new Promise((resolve) => {
+        const check = () => {
+          if (el.checked === expected) {
+            resolve();
+          } else {
+            setTimeout(check, 10);
+          }
+        };
+        check();
+      });
+    }, !currentState);
   }
 
   /**
