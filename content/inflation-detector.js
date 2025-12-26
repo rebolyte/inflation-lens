@@ -18,6 +18,7 @@ let observerTimeout = null;
  * @returns {Promise<void>}
  */
 async function initialize() {
+  console.log('[Inflation Lens] Content script initializing');
   const storage = await chrome.storage.local.get(['enabled']);
   isEnabled = storage.enabled !== false;
 
@@ -35,6 +36,9 @@ async function initialize() {
  * @returns {void}
  */
 function processPage() {
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/6673c1f3-8ed8-48e6-b2ac-6de09baac5f9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'inflation-detector.js:50',message:'processPage() called',data:{isEnabled,pageYear},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+  // #endregion
   if (!isEnabled || !pageYear) return;
 
   const count = findAndReplacePrices(document.body, pageYear, {
@@ -42,6 +46,9 @@ function processPage() {
     formatPrice,
     parsePrice
   });
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/6673c1f3-8ed8-48e6-b2ac-6de09baac5f9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'inflation-detector.js:60',message:'findAndReplacePrices result',data:{count,totalAdjusted:totalAdjusted+count},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+  // #endregion
 
   totalAdjusted += count;
 }

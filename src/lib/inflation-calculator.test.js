@@ -168,8 +168,12 @@ describe("inflation-calculator", () => {
     it("returns null for invalid years", () => {
       assert.strictEqual(calculateInflation(100, 1900, 2020), null,
         "Years before 1913 should return null");
-      assert.strictEqual(calculateInflation(100, 2000, 2030), null,
-        "Future years should return null");
+    });
+
+    it("falls back to latest year for future toYear", () => {
+      const result = calculateInflation(100, 2000, 2030);
+      assert.ok(result !== null, "Future toYear should fall back to latest available");
+      assert.ok(result > 100, "Should still calculate inflation to latest year");
     });
 
     // Regression tests - ensure refactoring doesn't break existing behavior
@@ -228,9 +232,10 @@ describe("inflation-calculator", () => {
       assert.strictEqual(result, null, "Should return null when fromYear not in CPI data");
     });
 
-    it("calculateInflation returns null when toYear is missing", () => {
+    it("calculateInflation falls back to latest year when toYear is missing", () => {
       const result = calculateInflation(100, 2000, 2100);
-      assert.strictEqual(result, null, "Should return null when toYear not in CPI data");
+      assert.ok(result !== null, "Should fall back to latest year when toYear not in CPI data");
+      assert.ok(result > 100, "Should still calculate inflation to latest year");
     });
 
     it("parsePrice handles empty string", () => {
