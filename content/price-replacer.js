@@ -128,9 +128,6 @@ export function findAndReplacePrices(rootElement, year, calculator) {
   while ((node = walker.nextNode())) {
     nodesToProcess.push(node);
   }
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/6673c1f3-8ed8-48e6-b2ac-6de09baac5f9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'price-replacer.js:130',message:'TreeWalker nodes found',data:{nodeCount:nodesToProcess.length,sampleTexts:nodesToProcess.slice(0,5).map(n=>n.textContent)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'F'})}).catch(()=>{});
-  // #endregion
 
   let totalReplacements = 0;
   nodesToProcess.forEach(textNode => {

@@ -1,4 +1,7 @@
+console.log('[Inflation Lens] Background script initializing');
+
 chrome.runtime.onInstalled.addListener(() => {
+  console.log('[Inflation Lens] Extension installed/updated');
   chrome.storage.local.set({
     enabled: true,
     disabledDomains: []

@@ -17,20 +17,20 @@ document.addEventListener('alpine:init', () => {
      * @returns {Promise<void>}
      */
     async init() {
+      console.log('[Inflation Lens] Popup initializing');
       const storage = await chrome.storage.local.get(['enabled']);
       this.enabled = storage.enabled !== false;
 
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
       if (tab?.id) {
-        // @ts-ignore - Chrome sendMessage overload mismatch
-        chrome.tabs.sendMessage(tab.id, { action: 'getStats' }, (response) => {
+        chrome.tabs.sendMessage(tab.id, { action: 'getStats' }).then((response) => {
           if (response) {
             this.priceCount = response.priceCount || 0;
             this.detectedYear = response.detectedYear;
             this.enabled = response.enabled !== false;
           }
-        });
+        }).catch((e) => console.log('Content script unavailable:', e.message));
       }
 
       chrome.runtime.onMessage.addListener((message) => {
@@ -54,7 +54,7 @@ document.addEventListener('alpine:init', () => {
         chrome.tabs.sendMessage(tab.id, {
           action: 'toggleEnabled',
           enabled: this.enabled
-        });
+        }).catch((e) => console.log('Content script unavailable:', e.message));
       }
     }
   }));

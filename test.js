@@ -49,7 +49,6 @@ if (passthroughArgs.length > 0) {
 command += ` ${matches.join(" ")}`;
 
 if (values.debug) {
-  // eslint-disable-next-line no-console
   console.log(`RUN: ${command}`);
 }
 
