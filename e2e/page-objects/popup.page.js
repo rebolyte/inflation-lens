@@ -1,0 +1,92 @@
+import { BasePage } from './base.page.js';
+
+/**
+ * Page object for the extension popup
+ */
+export class PopupPage extends BasePage {
+  /**
+   * @param {import('@playwright/test').Page} page
+   * @param {string} extensionId
+   */
+  constructor(page, extensionId) {
+    super(page);
+    this.extensionId = extensionId;
+  }
+
+  /**
+   * Open the popup as a regular page
+   * @returns {Promise<void>}
+   */
+  async open() {
+    await this.goto(`chrome-extension://${this.extensionId}/popup/popup.html`);
+    // Wait for Alpine.js to initialize
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Get the price count displayed in the popup
+   * @returns {Promise<number>}
+   */
+  async getPriceCount() {
+    const countText = await this.page.locator('.stat-line strong').first().textContent();
+    return parseInt(countText || '0', 10);
+  }
+
+  /**
+   * Get the detected year displayed in the popup
+   * @returns {Promise<string | null>}
+   */
+  async getDetectedYear() {
+    const yearElement = await this.page.locator('.stat-line.small span[x-show="detectedYear"]');
+    const isVisible = await yearElement.isVisible();
+
+    if (!isVisible) {
+      return null;
+    }
+
+    const text = await yearElement.textContent();
+    const match = text?.match(/Page from (\d{4})/);
+    return match ? match[1] : null;
+  }
+
+  /**
+   * Check if the extension is enabled
+   * @returns {Promise<boolean>}
+   */
+  async isEnabled() {
+    const checkbox = this.page.locator('input[type="checkbox"]');
+    return await checkbox.isChecked();
+  }
+
+  /**
+   * Toggle the enabled state
+   * @returns {Promise<void>}
+   */
+  async toggleEnabled() {
+    const checkbox = this.page.locator('input[type="checkbox"]');
+    await checkbox.click();
+    // Wait for state to update
+    await this.page.waitForTimeout(100);
+  }
+
+  /**
+   * Set the enabled state to a specific value
+   * @param {boolean} enabled
+   * @returns {Promise<void>}
+   */
+  async setEnabled(enabled) {
+    const currentState = await this.isEnabled();
+    if (currentState !== enabled) {
+      await this.toggleEnabled();
+    }
+  }
+
+  /**
+   * Verify the popup is loaded
+   * @returns {Promise<void>}
+   */
+  async verifyLoaded() {
+    await this.page.waitForSelector('.container');
+    await this.page.waitForSelector('.header h1:has-text("Inflation Lens")');
+  }
+}
