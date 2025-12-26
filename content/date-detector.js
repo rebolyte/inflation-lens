@@ -2,11 +2,20 @@ const YEAR_REGEX = /\b(19[1-9]\d|20[0-2]\d)\b/;
 const MIN_YEAR = 1913;
 const MAX_YEAR = 2025;
 
+/**
+ * Validates that a year is within the acceptable range for CPI data
+ * @param {string | number} year - The year to validate
+ * @returns {number | null} The validated year as a number, or null if invalid
+ */
 export function validateYear(year) {
-  const y = parseInt(year, 10);
+  const y = typeof year === 'number' ? year : parseInt(year, 10);
   return y >= MIN_YEAR && y <= MAX_YEAR ? y : null;
 }
 
+/**
+ * Attempts to detect the publication year from meta tags in the page
+ * @returns {number | null} The detected year or null if not found
+ */
 export function detectFromMetaTags() {
   const metaSelectors = [
     'meta[property="article:published_time"]',
@@ -34,8 +43,12 @@ export function detectFromMetaTags() {
   return null;
 }
 
+/**
+ * Attempts to detect the publication year from JSON-LD structured data
+ * @returns {number | null} The detected year or null if not found
+ */
 export function detectFromJsonLd() {
-  const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+  const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
 
   for (const script of scripts) {
     try {
@@ -60,6 +73,10 @@ export function detectFromJsonLd() {
   return null;
 }
 
+/**
+ * Attempts to detect the publication year from the URL
+ * @returns {number | null} The detected year or null if not found
+ */
 export function detectFromUrl() {
   const url = window.location.href;
   const pathname = window.location.pathname;
@@ -83,6 +100,11 @@ export function detectFromUrl() {
   return null;
 }
 
+/**
+ * Detects the publication year of the current page using multiple strategies
+ * Falls back to current year if detection fails
+ * @returns {number} The detected or current year
+ */
 export function detectPageYear() {
   let year = detectFromMetaTags();
   if (year) return year;

@@ -1,12 +1,26 @@
+/**
+ * @typedef {Object} InflationCalculator
+ * @property {(priceStr: string) => number} parsePrice - Parses a price string to a number
+ * @property {(originalPrice: number, fromYear: number, toYear?: number) => number | null} calculateInflation - Calculates inflation-adjusted price
+ * @property {(num: number) => string} formatPrice - Formats a number as a price string
+ */
+
 const PRICE_REGEX = /\$(\d+(?:\.\d{1,2})?[KkMmBb]|\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*(?:USD|usd))?/g;
 
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'CODE', 'PRE', 'NOSCRIPT', 'TEXTAREA']);
 
+/** @type {WeakSet<Node>} */
 const processedNodes = new WeakSet();
 
+/**
+ * Determines if a node should be skipped during price replacement
+ * @param {Node} node - The DOM node to check
+ * @returns {boolean} True if the node should be skipped
+ */
 export function shouldSkipNode(node) {
   if (!node || !node.parentElement) return true;
 
+  /** @type {HTMLElement | null} */
   let element = node.parentElement;
   while (element) {
     if (SKIP_TAGS.has(element.tagName)) return true;
@@ -18,6 +32,13 @@ export function shouldSkipNode(node) {
   return false;
 }
 
+/**
+ * Replaces price strings in a text node with annotated spans containing inflation data
+ * @param {Node} textNode - The text node to process
+ * @param {number} year - The year to use for inflation calculations
+ * @param {InflationCalculator} calculator - Object with inflation calculation methods
+ * @returns {number} The number of prices replaced in this node
+ */
 export function replacePricesInNode(textNode, year, calculator) {
   if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return 0;
   if (processedNodes.has(textNode)) return 0;
@@ -42,6 +63,8 @@ export function replacePricesInNode(textNode, year, calculator) {
   if (matches.length === 0) return 0;
 
   const parent = textNode.parentNode;
+  if (!parent) return 0;
+
   const fragment = document.createDocumentFragment();
   let lastIndex = 0;
   let replacementCount = 0;
@@ -59,7 +82,7 @@ export function replacePricesInNode(textNode, year, calculator) {
       span.className = 'inflation-adjusted-price';
       span.textContent = m.priceText;
       span.setAttribute('data-original-price', m.priceText);
-      span.setAttribute('data-original-year', year);
+      span.setAttribute('data-original-year', String(year));
       span.setAttribute('data-adjusted-price', calculator.formatPrice(adjusted));
       fragment.appendChild(span);
       replacementCount++;
@@ -80,6 +103,13 @@ export function replacePricesInNode(textNode, year, calculator) {
   return replacementCount;
 }
 
+/**
+ * Finds and replaces all prices within a root element and its descendants
+ * @param {Element} rootElement - The root element to search within
+ * @param {number} year - The year to use for inflation calculations
+ * @param {InflationCalculator} calculator - Object with inflation calculation methods
+ * @returns {number} The total number of prices replaced
+ */
 export function findAndReplacePrices(rootElement, year, calculator) {
   if (!rootElement || !year || !calculator) return 0;
 
