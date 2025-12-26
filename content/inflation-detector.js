@@ -1,3 +1,7 @@
+import { loadCPIData, calculateInflation, formatPrice, parsePrice } from '../lib/inflation-calculator.js';
+import { detectPageYear } from './date-detector.js';
+import { findAndReplacePrices } from './price-replacer.js';
+
 let pageYear = null;
 let totalAdjusted = 0;
 let isEnabled = true;
