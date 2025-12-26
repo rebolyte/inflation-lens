@@ -3,9 +3,8 @@ const MIN_YEAR = 1913;
 const MAX_YEAR = 2025;
 
 /**
- * Validates that a year is within the acceptable range for CPI data
- * @param {string | number} year - The year to validate
- * @returns {number | null} The validated year as a number, or null if invalid
+ * @param {string | number} year
+ * @returns {number | null}
  */
 export function validateYear(year) {
   const y = typeof year === 'number' ? year : parseInt(year, 10);
@@ -13,8 +12,7 @@ export function validateYear(year) {
 }
 
 /**
- * Attempts to detect the publication year from meta tags in the page
- * @returns {number | null} The detected year or null if not found
+ * @returns {number | null}
  */
 export function detectFromMetaTags() {
   const metaSelectors = [
@@ -44,8 +42,7 @@ export function detectFromMetaTags() {
 }
 
 /**
- * Attempts to detect the publication year from JSON-LD structured data
- * @returns {number | null} The detected year or null if not found
+ * @returns {number | null}
  */
 export function detectFromJsonLd() {
   const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
@@ -74,8 +71,7 @@ export function detectFromJsonLd() {
 }
 
 /**
- * Attempts to detect the publication year from the URL
- * @returns {number | null} The detected year or null if not found
+ * @returns {number | null}
  */
 export function detectFromUrl() {
   const url = window.location.href;
@@ -101,9 +97,7 @@ export function detectFromUrl() {
 }
 
 /**
- * Detects the publication year of the current page using multiple strategies
- * Falls back to current year if detection fails
- * @returns {number} The detected or current year
+ * @returns {number}
  */
 export function detectPageYear() {
   let year = detectFromMetaTags();

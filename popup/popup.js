@@ -1,15 +1,12 @@
 /**
  * @typedef {Object} InflationLensData
- * @property {number} priceCount - Number of prices adjusted on the current page
- * @property {number | null} detectedYear - The detected year of the page content
- * @property {boolean} enabled - Whether the extension is currently enabled
- * @property {() => Promise<void>} init - Initializes the popup data
- * @property {() => Promise<void>} toggleEnabled - Toggles the enabled state
+ * @property {number} priceCount
+ * @property {number | null} detectedYear
+ * @property {boolean} enabled
+ * @property {() => Promise<void>} init
+ * @property {() => Promise<void>} toggleEnabled
  */
 
-/**
- * Initializes Alpine.js data component for the popup
- */
 document.addEventListener('alpine:init', () => {
   Alpine.data('inflationLens', () => ({
     priceCount: 0,
@@ -17,7 +14,6 @@ document.addEventListener('alpine:init', () => {
     enabled: true,
 
     /**
-     * Initializes the popup by loading current state
      * @returns {Promise<void>}
      */
     async init() {
@@ -48,7 +44,6 @@ document.addEventListener('alpine:init', () => {
     },
 
     /**
-     * Toggles the extension enabled state
      * @returns {Promise<void>}
      */
     async toggleEnabled() {

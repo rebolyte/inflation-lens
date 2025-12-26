@@ -1,8 +1,8 @@
 /**
  * @typedef {Object} InflationCalculator
- * @property {(priceStr: string) => number} parsePrice - Parses a price string to a number
- * @property {(originalPrice: number, fromYear: number, toYear?: number) => number | null} calculateInflation - Calculates inflation-adjusted price
- * @property {(num: number) => string} formatPrice - Formats a number as a price string
+ * @property {(priceStr: string) => number} parsePrice
+ * @property {(originalPrice: number, fromYear: number, toYear?: number) => number | null} calculateInflation
+ * @property {(num: number) => string} formatPrice
  */
 
 const PRICE_REGEX = /\$(\d+(?:\.\d{1,2})?[KkMmBb]|\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*(?:USD|usd))?/g;
@@ -13,9 +13,8 @@ const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'CODE', 'PRE', 'NOSCRIPT', 'TEXTAR
 const processedNodes = new WeakSet();
 
 /**
- * Determines if a node should be skipped during price replacement
- * @param {Node} node - The DOM node to check
- * @returns {boolean} True if the node should be skipped
+ * @param {Node} node
+ * @returns {boolean}
  */
 export function shouldSkipNode(node) {
   if (!node || !node.parentElement) return true;
@@ -33,11 +32,10 @@ export function shouldSkipNode(node) {
 }
 
 /**
- * Replaces price strings in a text node with annotated spans containing inflation data
- * @param {Node} textNode - The text node to process
- * @param {number} year - The year to use for inflation calculations
- * @param {InflationCalculator} calculator - Object with inflation calculation methods
- * @returns {number} The number of prices replaced in this node
+ * @param {Node} textNode
+ * @param {number} year
+ * @param {InflationCalculator} calculator
+ * @returns {number}
  */
 export function replacePricesInNode(textNode, year, calculator) {
   if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return 0;
@@ -104,11 +102,10 @@ export function replacePricesInNode(textNode, year, calculator) {
 }
 
 /**
- * Finds and replaces all prices within a root element and its descendants
- * @param {Element} rootElement - The root element to search within
- * @param {number} year - The year to use for inflation calculations
- * @param {InflationCalculator} calculator - Object with inflation calculation methods
- * @returns {number} The total number of prices replaced
+ * @param {Element} rootElement
+ * @param {number} year
+ * @param {InflationCalculator} calculator
+ * @returns {number}
  */
 export function findAndReplacePrices(rootElement, year, calculator) {
   if (!rootElement || !year || !calculator) return 0;

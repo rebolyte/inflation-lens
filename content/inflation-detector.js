@@ -15,7 +15,6 @@ let isEnabled = true;
 let observerTimeout = null;
 
 /**
- * Initializes the inflation detector extension
  * @returns {Promise<void>}
  */
 async function initialize() {
@@ -33,7 +32,6 @@ async function initialize() {
 }
 
 /**
- * Processes the current page to find and replace prices
  * @returns {void}
  */
 function processPage() {
@@ -49,7 +47,6 @@ function processPage() {
 }
 
 /**
- * Sets up a MutationObserver to watch for dynamically added content
  * @returns {void}
  */
 function setupMutationObserver() {
@@ -85,7 +82,6 @@ function setupMutationObserver() {
 }
 
 /**
- * Sends current statistics to the popup
  * @returns {void}
  */
 function sendStatsToPopup() {
