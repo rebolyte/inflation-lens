@@ -1,4 +1,4 @@
-import { loadCPIData, calculateInflation, formatPrice, parsePrice } from '../lib/inflation-calculator.js';
+import { loadCPIData, calculateInflation, formatPrice, parsePrice, getAdjustedYear } from '../lib/inflation-calculator.js';
 import { detectPageYear } from './date-detector.js';
 import { findAndReplacePrices } from './price-replacer.js';
 
@@ -41,7 +41,8 @@ function processPage() {
   const count = findAndReplacePrices(document.body, pageYear, {
     calculateInflation,
     formatPrice,
-    parsePrice
+    parsePrice,
+    getAdjustedYear
   });
 
   totalAdjusted += count;
@@ -65,7 +66,8 @@ function setupMutationObserver() {
             const count = findAndReplacePrices(node, pageYear, {
               calculateInflation,
               formatPrice,
-              parsePrice
+              parsePrice,
+              getAdjustedYear
             });
             totalAdjusted += count;
           }

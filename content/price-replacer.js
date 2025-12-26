@@ -3,6 +3,7 @@
  * @property {(priceStr: string) => number} parsePrice
  * @property {(originalPrice: number, fromYear: number, toYear?: number) => number | null} calculateInflation
  * @property {(num: number) => string} formatPrice
+ * @property {(() => number | null) | undefined} [getAdjustedYear]
  */
 
 const PRICE_REGEX = /\$(\d+(?:\.\d{1,2})?[KkMmBb]|\d{4,}(?:\.\d{2})?|\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*(?:USD|usd))?/g;
@@ -25,6 +26,7 @@ export function shouldSkipNode(node) {
     if (SKIP_TAGS.has(element.tagName)) return true;
     if (element.hasAttribute('data-no-inflation')) return true;
     if (element.classList && element.classList.contains('inflation-adjusted-price')) return true;
+    if (element.id === 'tooltips') return true;
     element = element.parentElement;
   }
 
@@ -74,6 +76,7 @@ export function replacePricesInNode(textNode, year, calculator) {
 
     const priceNum = calculator.parsePrice(m.priceValue);
     const adjusted = calculator.calculateInflation(priceNum, year);
+    const adjustedYear = calculator.getAdjustedYear ? calculator.getAdjustedYear() : null;
 
     if (adjusted && adjusted !== priceNum) {
       const span = document.createElement('span');
@@ -83,7 +86,10 @@ export function replacePricesInNode(textNode, year, calculator) {
       span.setAttribute('data-original-price', m.priceText);
       span.setAttribute('data-original-year', String(year));
       span.setAttribute('data-adjusted-price', calculator.formatPrice(adjusted));
-      const tooltipText = `${m.priceText} in ${year} = ${calculator.formatPrice(adjusted)} today`;
+      const adjustedPriceText = adjustedYear 
+        ? `${calculator.formatPrice(adjusted)} (${adjustedYear})`
+        : calculator.formatPrice(adjusted);
+      const tooltipText = `${m.priceText} in ${year} = ${adjustedPriceText}`;
       span.setAttribute('data-tooltip', tooltipText);
       fragment.appendChild(span);
       replacementCount++;

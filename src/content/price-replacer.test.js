@@ -28,7 +28,7 @@ global.fetch = async (url) => {
 };
 
 // Import real calculator for integration tests
-import { loadCPIData, calculateInflation, formatPrice, parsePrice } from "../../lib/inflation-calculator.js";
+import { loadCPIData, calculateInflation, formatPrice, parsePrice, getAdjustedYear } from "../../lib/inflation-calculator.js";
 
 let dom;
 let originalDocument;
@@ -37,7 +37,8 @@ let originalDocument;
 const mockCalculator = {
   parsePrice: (str) => parseFloat(str.replace(/[$,]/g, '')),
   calculateInflation: (price, year) => price * 1.5, // Simple 50% inflation for testing
-  formatPrice: (num) => `$${num.toFixed(2)}`
+  formatPrice: (num) => `$${num.toFixed(2)}`,
+  getAdjustedYear: () => 2023
 };
 
 describe("price-replacer", () => {
@@ -235,6 +236,22 @@ describe("price-replacer", () => {
       const textNode = span.firstChild;
       assert.strictEqual(shouldSkipNode(textNode), true);
     });
+
+    it("skips nodes inside tooltips container", () => {
+      const tooltips = dom.window.document.createElement("div");
+      tooltips.id = "tooltips";
+      const tooltip = dom.window.document.createElement("div");
+      tooltip.className = "tooltip";
+      const tooltipText = dom.window.document.createElement("div");
+      tooltipText.className = "tooltip-text";
+      tooltipText.textContent = "$100 in 2020 = $120 today";
+      tooltip.appendChild(tooltipText);
+      tooltips.appendChild(tooltip);
+      dom.window.document.body.appendChild(tooltips);
+
+      const textNode = tooltipText.firstChild;
+      assert.strictEqual(shouldSkipNode(textNode), true);
+    });
   });
 
   describe("replacePricesInNode", () => {
@@ -374,7 +391,7 @@ describe("price-replacer", () => {
     beforeEach(async () => {
       // Load CPI data for the real calculator
       await loadCPIData();
-      realCalculator = { parsePrice, calculateInflation, formatPrice };
+      realCalculator = { parsePrice, calculateInflation, formatPrice, getAdjustedYear };
     });
 
     it("replaces prices with realistic inflation adjustments", () => {

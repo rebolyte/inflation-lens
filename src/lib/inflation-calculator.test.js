@@ -86,12 +86,16 @@ describe("inflation-calculator", () => {
       assert.strictEqual(formatPrice(1000000), "$1M");
       assert.strictEqual(formatPrice(1500000), "$1.5M");
       assert.strictEqual(formatPrice(2000000), "$2M");
+      assert.strictEqual(formatPrice(1420000), "$1.42M");
+      assert.strictEqual(formatPrice(1425000), "$1.43M");
     });
 
     it("formats billions with B suffix", () => {
       assert.strictEqual(formatPrice(1000000000), "$1B");
       assert.strictEqual(formatPrice(1500000000), "$1.5B");
       assert.strictEqual(formatPrice(2000000000), "$2B");
+      assert.strictEqual(formatPrice(7200000000), "$7.2B");
+      assert.strictEqual(formatPrice(6985327831.27), "$6.99B");
     });
 
     it("handles edge case amounts", () => {
@@ -189,14 +193,14 @@ describe("inflation-calculator", () => {
     it("regression: calculates inflation between years", () => {
       const adjusted = calculateInflation(100, 2000, 2020);
       assert.ok(adjusted !== null);
-      // $100 in 2000 = $150.29 in 2020 (258.8/172.2 * 100)
+      // $100 in 2000 = $150.29 in 2020 (258.8/172.2 * 100, rounded to 2 decimals)
       assert.strictEqual(adjusted, 150.29);
     });
 
     it("regression: calculates inflation to known year", () => {
       const adjusted = calculateInflation(100, 2020, 2023);
       assert.ok(adjusted !== null);
-      // $100 in 2020 = $117.74 in 2023 (304.7/258.8 * 100)
+      // $100 in 2020 = $117.74 in 2023 (304.7/258.8 * 100, rounded to 2 decimals)
       assert.strictEqual(adjusted, 117.74);
     });
 
