@@ -5,7 +5,7 @@
  * @property {(num: number) => string} formatPrice
  */
 
-const PRICE_REGEX = /\$(\d+(?:\.\d{1,2})?[KkMmBb]|\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*(?:USD|usd))?/g;
+const PRICE_REGEX = /\$(\d+(?:\.\d{1,2})?[KkMmBb]|\d{4,}(?:\.\d{2})?|\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*(?:USD|usd))?/g;
 
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'CODE', 'PRE', 'NOSCRIPT', 'TEXTAREA']);
 

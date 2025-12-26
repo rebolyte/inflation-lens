@@ -121,6 +121,33 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 3);
     });
 
+    it("matches prices without comma separators", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "The price was $1000";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 1);
+      const span = div.querySelector(".inflation-adjusted-price");
+      assert.ok(span);
+      assert.strictEqual(span.getAttribute("data-original-price"), "$1000");
+    });
+
+    it("matches various prices without comma separators", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "Prices: $2400, $2400.28, $500000, $10000000";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 4);
+      const spans = div.querySelectorAll(".inflation-adjusted-price");
+      assert.strictEqual(spans.length, 4);
+      
+      const prices = Array.from(spans).map(s => s.getAttribute("data-original-price"));
+      assert.ok(prices.includes("$2400"), `Expected $2400, got ${prices}`);
+      assert.ok(prices.includes("$2400.28"), `Expected $2400.28, got ${prices}`);
+      assert.ok(prices.includes("$500000"), `Expected $500000, got ${prices}`);
+      assert.ok(prices.includes("$10000000"), `Expected $10000000, got ${prices}`);
+    });
+
     it("does not match invalid patterns", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Model: S100, Year: 2020, Code: USD123";
@@ -508,6 +535,27 @@ describe("price-replacer", () => {
         `Expected ~$9 (not millions), got ${adjusted}`);
       assert.ok(adjusted.some(p => (p.includes("$14") || p.includes("$15")) && !p.toUpperCase().includes("M")),
         `Expected ~$14-15 (not millions), got ${adjusted}`);
+    });
+
+    it("handles prices without comma separators using real calculator", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "In 2000, this cost $1000";
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 1, "Should find one price");
+      const span = div.querySelector(".inflation-adjusted-price");
+      assert.ok(span, "Should create inflation-adjusted span");
+      assert.strictEqual(span.getAttribute("data-original-price"), "$1000",
+        "Should capture full $1000, not just $100");
+      
+      // Verify it calculated real inflation on $1000, not $100
+      // $1000 in 2000 = $1858.30 in 2025 (320.0/172.2 * 1000)
+      const adjustedPrice = span.getAttribute("data-adjusted-price");
+      const priceWithoutCommas = adjustedPrice.replace(/,/g, "");
+      assert.ok(priceWithoutCommas.includes("$1858") || priceWithoutCommas.includes("$1859"),
+        `Expected ~$1858-1859 inflation-adjusted price, got ${adjustedPrice}`);
     });
 
     it("handles suffix + USD combination", () => {
