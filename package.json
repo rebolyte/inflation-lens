@@ -8,7 +8,8 @@
   "license": "MIT",
   "scripts": {
     "test": "node test.js",
-    "test:watch": "node test.js --watch"
+    "test:watch": "node test.js --watch",
+    "ts:check": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/alpinejs": "^3.13.11",
