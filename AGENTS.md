@@ -10,6 +10,11 @@ Be extremely concise in all responses. Sacrifice grammar for the sake of concisi
 - We are using Chrome extension Manifest V3.
 - Use `bd` for task tracking (run `bd quickstart` for help)
 
+## Verifying changes
+
+* run tests: `yarn test`, `yarn test:watch`, `yarn test --filter <test name string/regexp>` (ex: `--filter "my"` or `--filter "/.*Memories$/"`), or `yarn test --reporter dot` (for quick verification)
+* validate types: `yarn ts:check`
+
 ## Alpine
 
 By default, in order for Alpine to execute JavaScript expressions from HTML attributes like x-on:click="console.log()", it needs to use utilities that violate the "unsafe-eval" Content Security Policy that some applications enforce for security purposes. We use an alternate build that doesn't violate "unsafe-eval" and supports most of Alpine's inline expression syntax.

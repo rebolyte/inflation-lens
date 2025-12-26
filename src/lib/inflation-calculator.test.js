@@ -17,8 +17,7 @@ global.fetch = async (url) => {
           1913: 9.9,
           2000: 172.2,
           2020: 258.8,
-          2024: 310.3,
-          2025: 320.0,
+          2023: 304.7,
         },
       }),
     };
@@ -152,7 +151,7 @@ describe("inflation-calculator", () => {
     });
 
     it("century of inflation should significantly increase value", () => {
-      const adjusted = calculateInflation(100, 1913, 2024);
+      const adjusted = calculateInflation(100, 1913, 2023);
       assert.ok(adjusted !== null);
       assert.ok(adjusted > 1000,
         "A century of inflation should increase value by at least 10x");
@@ -176,6 +175,16 @@ describe("inflation-calculator", () => {
       assert.ok(result > 100, "Should still calculate inflation to latest year");
     });
 
+    it("falls back to latest year when default toYear (current year) is not in data", () => {
+      const currentYear = new Date().getFullYear();
+      if (currentYear > 2023) {
+        const result = calculateInflation(100, 2000);
+        assert.ok(result !== null, "Default toYear (current year) should fall back to latest available when not in data");
+        assert.ok(result > 100, "Should still calculate inflation to latest year");
+        assert.strictEqual(result, calculateInflation(100, 2000, 2023), "Should match explicit calculation to latest year");
+      }
+    });
+
     // Regression tests - ensure refactoring doesn't break existing behavior
     it("regression: calculates inflation between years", () => {
       const adjusted = calculateInflation(100, 2000, 2020);
@@ -185,10 +194,10 @@ describe("inflation-calculator", () => {
     });
 
     it("regression: calculates inflation to known year", () => {
-      const adjusted = calculateInflation(100, 2020, 2024);
+      const adjusted = calculateInflation(100, 2020, 2023);
       assert.ok(adjusted !== null);
-      // $100 in 2020 = $119.90 in 2024 (310.3/258.8 * 100)
-      assert.strictEqual(adjusted, 119.9);
+      // $100 in 2020 = $117.74 in 2023 (304.7/258.8 * 100)
+      assert.strictEqual(adjusted, 117.74);
     });
 
     it("regression: handles large amounts correctly", () => {
@@ -236,6 +245,12 @@ describe("inflation-calculator", () => {
       const result = calculateInflation(100, 2000, 2100);
       assert.ok(result !== null, "Should fall back to latest year when toYear not in CPI data");
       assert.ok(result > 100, "Should still calculate inflation to latest year");
+    });
+
+    it("calculateInflation falls back when toYear is current year not in data", () => {
+      const result = calculateInflation(100, 2000, 2025);
+      assert.ok(result !== null, "Should fall back to latest year (2023) when toYear (2025) not in CPI data");
+      assert.strictEqual(result, calculateInflation(100, 2000, 2023), "Should match explicit calculation to 2023");
     });
 
     it("parsePrice handles empty string", () => {
