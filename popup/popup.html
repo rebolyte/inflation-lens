@@ -32,6 +32,10 @@
           <input data-testid="enable-toggle" type="checkbox" x-model="enabled" @change="toggleEnabled" />
           <span>Enable inflation adjustment</span>
         </label>
+        <label class="toggle-label" x-show="enabled">
+          <input data-testid="swap-toggle" type="checkbox" x-model="swapInPlace" @change="toggleSwapInPlace" />
+          <span>Swap prices in place</span>
+        </label>
       </div>
     </div>
 

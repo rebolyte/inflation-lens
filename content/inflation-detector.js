@@ -11,6 +11,9 @@ let totalAdjusted = 0;
 /** @type {boolean} */
 let isEnabled = true;
 
+/** @type {boolean} */
+let swapInPlace = false;
+
 /** @type {ReturnType<typeof setTimeout> | null} */
 let observerTimeout = null;
 
@@ -19,8 +22,9 @@ let observerTimeout = null;
  */
 async function initialize() {
   console.log('[Inflation Lens] Content script initializing');
-  const storage = await chrome.storage.local.get(['enabled']);
+  const storage = await chrome.storage.local.get(['enabled', 'swapInPlace']);
   isEnabled = storage.enabled !== false;
+  swapInPlace = storage.swapInPlace === true;
 
   if (!isEnabled) return;
 
@@ -43,7 +47,7 @@ function processPage() {
     formatPrice,
     parsePrice,
     getAdjustedYear
-  });
+  }, swapInPlace);
 
   totalAdjusted += count;
 }
@@ -68,7 +72,7 @@ function setupMutationObserver() {
               formatPrice,
               parsePrice,
               getAdjustedYear
-            });
+            }, swapInPlace);
             totalAdjusted += count;
           }
         });
@@ -93,7 +97,8 @@ function sendStatsToPopup() {
     data: {
       priceCount: totalAdjusted,
       detectedYear: pageYear,
-      enabled: isEnabled
+      enabled: isEnabled,
+      swapInPlace: swapInPlace
     }
   });
 }
@@ -103,7 +108,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     isEnabled = message.enabled;
     if (!isEnabled) {
       document.querySelectorAll('.inflation-adjusted-price').forEach(span => {
-        if (span.textContent) {
+        const originalPrice = span.getAttribute('data-original-price');
+        if (originalPrice) {
+          span.outerHTML = originalPrice;
+        } else if (span.textContent) {
           span.outerHTML = span.textContent;
         }
       });
@@ -114,12 +122,36 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendStatsToPopup();
     // @ts-ignore - sendResponse type mismatch in Chrome types
     sendResponse({ success: true });
+  } else if (message.action === 'toggleSwapInPlace') {
+    swapInPlace = message.swapInPlace;
+    document.querySelectorAll('.inflation-adjusted-price').forEach(span => {
+      const originalPrice = span.getAttribute('data-original-price');
+      const adjustedPrice = span.getAttribute('data-adjusted-price');
+      const originalYear = span.getAttribute('data-original-year');
+      if (originalPrice && adjustedPrice) {
+        const adjustedYear = getAdjustedYear ? getAdjustedYear() : null;
+      const adjustedPriceText = adjustedYear 
+        ? `${adjustedPrice} (${adjustedYear})`
+        : adjustedPrice;
+      if (swapInPlace) {
+        span.textContent = adjustedPrice;
+      } else {
+        span.textContent = originalPrice;
+      }
+      const tooltipText = `${originalPrice} in ${originalYear} = ${adjustedPriceText}`;
+      span.setAttribute('data-tooltip', tooltipText);
+      }
+    });
+    sendStatsToPopup();
+    // @ts-ignore - sendResponse type mismatch in Chrome types
+    sendResponse({ success: true });
   } else if (message.action === 'getStats') {
     // @ts-ignore - sendResponse type mismatch in Chrome types
     sendResponse({
       priceCount: totalAdjusted,
       detectedYear: pageYear,
-      enabled: isEnabled
+      enabled: isEnabled,
+      swapInPlace: swapInPlace
     });
   }
   return true;

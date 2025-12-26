@@ -37,9 +37,10 @@ export function shouldSkipNode(node) {
  * @param {Node} textNode
  * @param {number} year
  * @param {InflationCalculator} calculator
+ * @param {boolean} swapInPlace
  * @returns {number}
  */
-export function replacePricesInNode(textNode, year, calculator) {
+export function replacePricesInNode(textNode, year, calculator, swapInPlace = false) {
   if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return 0;
   if (processedNodes.has(textNode)) return 0;
   if (shouldSkipNode(textNode)) return 0;
@@ -82,15 +83,24 @@ export function replacePricesInNode(textNode, year, calculator) {
       const span = document.createElement('span');
       span.className = 'inflation-adjusted-price';
       span.setAttribute('data-testid', 'adjusted-price');
-      span.textContent = m.priceText;
       span.setAttribute('data-original-price', m.priceText);
       span.setAttribute('data-original-year', String(year));
       span.setAttribute('data-adjusted-price', calculator.formatPrice(adjusted));
+      
       const adjustedPriceText = adjustedYear 
         ? `${calculator.formatPrice(adjusted)} (${adjustedYear})`
         : calculator.formatPrice(adjusted);
-      const tooltipText = `${m.priceText} in ${year} = ${adjustedPriceText}`;
-      span.setAttribute('data-tooltip', tooltipText);
+      
+      if (swapInPlace) {
+        span.textContent = calculator.formatPrice(adjusted);
+        const tooltipText = `${m.priceText} in ${year} = ${adjustedPriceText}`;
+        span.setAttribute('data-tooltip', tooltipText);
+      } else {
+        span.textContent = m.priceText;
+        const tooltipText = `${m.priceText} in ${year} = ${adjustedPriceText}`;
+        span.setAttribute('data-tooltip', tooltipText);
+      }
+      
       fragment.appendChild(span);
       replacementCount++;
     } else {
@@ -114,9 +124,10 @@ export function replacePricesInNode(textNode, year, calculator) {
  * @param {Element} rootElement
  * @param {number} year
  * @param {InflationCalculator} calculator
+ * @param {boolean} swapInPlace
  * @returns {number}
  */
-export function findAndReplacePrices(rootElement, year, calculator) {
+export function findAndReplacePrices(rootElement, year, calculator, swapInPlace = false) {
   if (!rootElement || !year || !calculator) return 0;
 
   const walker = document.createTreeWalker(
@@ -139,7 +150,7 @@ export function findAndReplacePrices(rootElement, year, calculator) {
 
   let totalReplacements = 0;
   nodesToProcess.forEach(textNode => {
-    totalReplacements += replacePricesInNode(textNode, year, calculator);
+    totalReplacements += replacePricesInNode(textNode, year, calculator, swapInPlace);
   });
 
   return totalReplacements;
