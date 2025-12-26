@@ -15,7 +15,7 @@ test.describe('Price replacement functionality', () => {
 
     // Verify prices were adjusted
     const count = await contentPage.getAdjustedPriceCount();
-    expect(count).toBeGreaterThan(0);
+    expect(count).toBe(3);
 
     // Verify the first adjusted price has correct attributes
     const priceData = await contentPage.verifyPriceAdjusted(0);
@@ -55,7 +55,7 @@ test.describe('Price replacement functionality', () => {
     await contentPage.createTestPageWithContent(prices, 2015);
 
     const count = await contentPage.getAdjustedPriceCount();
-    expect(count).toBeGreaterThanOrEqual(3); // Should find at least 3 prices
+    expect(count).toBe(4);
 
     await page.close();
   });
@@ -75,14 +75,14 @@ test.describe('Price replacement functionality', () => {
     await contentPage1.bringToFront();
     const count1 = await contentPage1.getAdjustedPriceCount();
     const year1 = await contentPage1.getOriginalYear(0);
-    expect(count1).toBeGreaterThan(0);
+    expect(count1).toBe(1);
     expect(year1).toBe('2010');
 
     // Verify second tab
     await contentPage2.bringToFront();
     const count2 = await contentPage2.getAdjustedPriceCount();
     const year2 = await contentPage2.getOriginalYear(0);
-    expect(count2).toBeGreaterThan(0);
+    expect(count2).toBe(1);
     expect(year2).toBe('2015');
 
     await page1.close();
@@ -123,7 +123,7 @@ test.describe('Price replacement functionality', () => {
 
     // Prices should now be adjusted
     const countEnabled = await contentPage.getAdjustedPriceCount();
-    expect(countEnabled).toBeGreaterThan(0);
+    expect(countEnabled).toBe(1);
 
     await contentPageHandle.close();
     await popupPageHandle.close();
@@ -144,7 +144,7 @@ test.describe('Price replacement functionality', () => {
     await contentPage.createTestPageWithContent(prices, 2010);
 
     const count = await contentPage.getAdjustedPriceCount();
-    expect(count).toBeGreaterThan(0);
+    expect(count).toBe(4);
 
     await page.close();
   });
@@ -163,7 +163,7 @@ test.describe('Price replacement functionality', () => {
 
     // 2. Verify prices are adjusted initially
     const initialCount = await contentPage.getAdjustedPriceCount();
-    expect(initialCount).toBeGreaterThan(0);
+    expect(initialCount).toBe(3);
 
     // 3. Open popup and disable extension
     const popupPageHandle = await context.newPage();
@@ -193,7 +193,7 @@ test.describe('Price replacement functionality', () => {
 
     // 10. Verify prices are adjusted again
     const enabledCount = await contentPage.getAdjustedPriceCount();
-    expect(enabledCount).toBeGreaterThan(0);
+    expect(enabledCount).toBe(3);
 
     await contentPageHandle.close();
     await popupPageHandle.close();

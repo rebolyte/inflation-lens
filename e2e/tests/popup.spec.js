@@ -70,7 +70,7 @@ test.describe('Popup functionality', () => {
     const priceCount = await popupPage.getPriceCount();
     const detectedYear = await popupPage.getDetectedYear();
 
-    expect(priceCount).toBeGreaterThan(0);
+    expect(priceCount).toBe(2);
     expect(detectedYear).toBe('2010');
 
     await contentPageHandle.close();
