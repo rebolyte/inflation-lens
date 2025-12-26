@@ -2,11 +2,18 @@ const YEAR_REGEX = /\b(19[1-9]\d|20[0-2]\d)\b/;
 const MIN_YEAR = 1913;
 const MAX_YEAR = 2025;
 
+/**
+ * @param {string | number} year
+ * @returns {number | null}
+ */
 export function validateYear(year) {
-  const y = parseInt(year, 10);
+  const y = typeof year === 'number' ? year : parseInt(year, 10);
   return y >= MIN_YEAR && y <= MAX_YEAR ? y : null;
 }
 
+/**
+ * @returns {number | null}
+ */
 export function detectFromMetaTags() {
   const metaSelectors = [
     'meta[property="article:published_time"]',
@@ -34,8 +41,11 @@ export function detectFromMetaTags() {
   return null;
 }
 
+/**
+ * @returns {number | null}
+ */
 export function detectFromJsonLd() {
-  const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+  const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
 
   for (const script of scripts) {
     try {
@@ -60,6 +70,9 @@ export function detectFromJsonLd() {
   return null;
 }
 
+/**
+ * @returns {number | null}
+ */
 export function detectFromUrl() {
   const url = window.location.href;
   const pathname = window.location.pathname;
@@ -83,6 +96,9 @@ export function detectFromUrl() {
   return null;
 }
 
+/**
+ * @returns {number}
+ */
 export function detectPageYear() {
   let year = detectFromMetaTags();
   if (year) return year;

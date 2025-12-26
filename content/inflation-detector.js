@@ -2,11 +2,21 @@ import { loadCPIData, calculateInflation, formatPrice, parsePrice } from '../lib
 import { detectPageYear } from './date-detector.js';
 import { findAndReplacePrices } from './price-replacer.js';
 
+/** @type {number | null} */
 let pageYear = null;
+
+/** @type {number} */
 let totalAdjusted = 0;
+
+/** @type {boolean} */
 let isEnabled = true;
+
+/** @type {ReturnType<typeof setTimeout> | null} */
 let observerTimeout = null;
 
+/**
+ * @returns {Promise<void>}
+ */
 async function initialize() {
   const storage = await chrome.storage.local.get(['enabled']);
   isEnabled = storage.enabled !== false;
@@ -21,6 +31,9 @@ async function initialize() {
   sendStatsToPopup();
 }
 
+/**
+ * @returns {void}
+ */
 function processPage() {
   if (!isEnabled || !pageYear) return;
 
@@ -33,9 +46,12 @@ function processPage() {
   totalAdjusted += count;
 }
 
+/**
+ * @returns {void}
+ */
 function setupMutationObserver() {
   const observer = new MutationObserver((mutations) => {
-    if (!isEnabled) return;
+    if (!isEnabled || !pageYear) return;
 
     if (observerTimeout) {
       clearTimeout(observerTimeout);
@@ -44,7 +60,7 @@ function setupMutationObserver() {
     observerTimeout = setTimeout(() => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.nodeType === Node.ELEMENT_NODE && node instanceof Element && pageYear) {
             const count = findAndReplacePrices(node, pageYear, {
               calculateInflation,
               formatPrice,
@@ -65,6 +81,9 @@ function setupMutationObserver() {
   });
 }
 
+/**
+ * @returns {void}
+ */
 function sendStatsToPopup() {
   chrome.runtime.sendMessage({
     action: 'updateStats',
@@ -81,15 +100,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     isEnabled = message.enabled;
     if (!isEnabled) {
       document.querySelectorAll('.inflation-adjusted-price').forEach(span => {
-        span.outerHTML = span.textContent;
+        if (span.textContent) {
+          span.outerHTML = span.textContent;
+        }
       });
       totalAdjusted = 0;
     } else {
       processPage();
     }
     sendStatsToPopup();
+    // @ts-ignore - sendResponse type mismatch in Chrome types
     sendResponse({ success: true });
   } else if (message.action === 'getStats') {
+    // @ts-ignore - sendResponse type mismatch in Chrome types
     sendResponse({
       priceCount: totalAdjusted,
       detectedYear: pageYear,

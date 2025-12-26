@@ -5,6 +5,12 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+/**
+ * @param {Object} request
+ * @param {chrome.runtime.MessageSender} sender
+ * @param {function} sendResponse
+ * @returns {boolean}
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
