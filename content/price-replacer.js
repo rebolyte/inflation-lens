@@ -83,6 +83,8 @@ export function replacePricesInNode(textNode, year, calculator) {
       span.setAttribute('data-original-price', m.priceText);
       span.setAttribute('data-original-year', String(year));
       span.setAttribute('data-adjusted-price', calculator.formatPrice(adjusted));
+      const tooltipText = `${m.priceText} in ${year} = ${calculator.formatPrice(adjusted)} today`;
+      span.setAttribute('data-tooltip', tooltipText);
       fragment.appendChild(span);
       replacementCount++;
     } else {

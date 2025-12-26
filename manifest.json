@@ -22,7 +22,7 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content/loader.js"],
-      "css": ["content/inflation.css"],
+      "css": ["vendor/easy-tooltips-1.2.9.min.css", "content/inflation.css"],
       "run_at": "document_idle"
     }
   ],
@@ -36,7 +36,8 @@
         "lib/inflation-calculator.js",
         "content/date-detector.js",
         "content/price-replacer.js",
-        "content/inflation-detector.js"
+        "content/inflation-detector.js",
+        "vendor/easy-tooltips-1.2.9.min.js"
       ],
       "matches": ["<all_urls>"]
     }
