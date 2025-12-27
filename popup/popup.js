@@ -23,7 +23,11 @@ document.addEventListener('alpine:init', () => {
       this.enabled = storage.enabled !== false;
       this.swapInPlace = storage.swapInPlace === true;
 
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      // Find http/https tabs only to handle Playwright tests where popup opens
+      // as a regular tab (with undefined url) instead of a popup overlay
+      const tabs = await chrome.tabs.query({ currentWindow: true });
+      const tab = tabs.find(t => t.active && t.url?.startsWith('http'))
+                || tabs.find(t => t.url?.startsWith('http'));
 
       if (tab?.id) {
         chrome.tabs.sendMessage(tab.id, { action: 'getStats' }).then((response) => {
@@ -53,7 +57,9 @@ document.addEventListener('alpine:init', () => {
     async toggleEnabled() {
       await chrome.storage.local.set({ enabled: this.enabled });
 
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const tabs = await chrome.tabs.query({ currentWindow: true });
+      const tab = tabs.find(t => t.active && t.url?.startsWith('http'))
+                || tabs.find(t => t.url?.startsWith('http'));
       if (tab?.id) {
         chrome.tabs.sendMessage(tab.id, {
           action: 'toggleEnabled',
@@ -68,7 +74,9 @@ document.addEventListener('alpine:init', () => {
     async toggleSwapInPlace() {
       await chrome.storage.local.set({ swapInPlace: this.swapInPlace });
 
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const tabs = await chrome.tabs.query({ currentWindow: true });
+      const tab = tabs.find(t => t.active && t.url?.startsWith('http'))
+                || tabs.find(t => t.url?.startsWith('http'));
       if (tab?.id) {
         chrome.tabs.sendMessage(tab.id, {
           action: 'toggleSwapInPlace',
