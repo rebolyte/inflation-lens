@@ -41,3 +41,11 @@ You should see the extension in your extensions list. Pin it in your toolbar for
 https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world
 
 https://developer.chrome.com/docs/extensions/reference
+
+### Test pages
+
+https://www.zillow.com/research/q4-2014-market-report-8759/
+
+https://www.oprah.com/oprahshow/oprahs-ultimate-favorite-things-2010/all
+
+https://www.caranddriver.com/features/a15140883/2000-10best-cars/

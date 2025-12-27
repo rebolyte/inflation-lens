@@ -1,9 +1,12 @@
 import { loadCPIData, calculateInflation, formatPrice, parsePrice, getAdjustedYear } from '../lib/inflation-calculator.js';
-import { detectPageYear } from './date-detector.js';
+import { detectPageYear, validateYear, detectFromMetaTags, detectFromJsonLd, detectFromUrl } from './date-detector.js';
 import { findAndReplacePrices } from './price-replacer.js';
 
 /** @type {number | null} */
 let pageYear = null;
+
+/** @type {number | null} */
+let detectedYear = null;
 
 /** @type {number} */
 let totalAdjusted = 0;
@@ -29,7 +32,8 @@ async function initialize() {
   if (!isEnabled) return;
 
   await loadCPIData();
-  pageYear = detectPageYear();
+  detectedYear = detectFromMetaTags() || detectFromJsonLd() || detectFromUrl();
+  pageYear = detectedYear || detectPageYear();
 
   processPage();
   setupMutationObserver();
@@ -91,12 +95,33 @@ function setupMutationObserver() {
 /**
  * @returns {void}
  */
+function revertAllPrices() {
+  document.querySelectorAll('.inflation-adjusted-price').forEach(span => {
+    const originalPrice = span.getAttribute('data-original-price');
+    const parent = span.parentNode;
+    if (parent) {
+      if (originalPrice) {
+        const textNode = document.createTextNode(originalPrice);
+        parent.replaceChild(textNode, span);
+      } else if (span.textContent) {
+        const textNode = document.createTextNode(span.textContent);
+        parent.replaceChild(textNode, span);
+      }
+    }
+  });
+  totalAdjusted = 0;
+}
+
+/**
+ * @returns {void}
+ */
 function sendStatsToPopup() {
   chrome.runtime.sendMessage({
     action: 'updateStats',
     data: {
       priceCount: totalAdjusted,
-      detectedYear: pageYear,
+      detectedYear: detectedYear,
+      currentYear: pageYear,
       enabled: isEnabled,
       swapInPlace: swapInPlace
     }
@@ -107,21 +132,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'toggleEnabled') {
     isEnabled = message.enabled;
     if (!isEnabled) {
-      document.querySelectorAll('.inflation-adjusted-price').forEach(span => {
-        const originalPrice = span.getAttribute('data-original-price');
-        const parent = span.parentNode;
-        if (parent) {
-          if (originalPrice) {
-            const textNode = document.createTextNode(originalPrice);
-            parent.replaceChild(textNode, span);
-          } else if (span.textContent) {
-            const textNode = document.createTextNode(span.textContent);
-            parent.replaceChild(textNode, span);
-          }
-        }
-      });
-      totalAdjusted = 0;
+      revertAllPrices();
     } else {
+      processPage();
+    }
+    sendStatsToPopup();
+    // @ts-ignore - sendResponse type mismatch in Chrome types
+    sendResponse({ success: true });
+  } else if (message.action === 'updateYear') {
+    const newYear = message.year !== null && message.year !== undefined ? validateYear(message.year) : null;
+    revertAllPrices();
+    pageYear = newYear || detectedYear || detectPageYear();
+    if (isEnabled && pageYear) {
       processPage();
     }
     sendStatsToPopup();
@@ -154,7 +176,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // @ts-ignore - sendResponse type mismatch in Chrome types
     sendResponse({
       priceCount: totalAdjusted,
-      detectedYear: pageYear,
+      detectedYear: detectedYear,
+      currentYear: pageYear,
       enabled: isEnabled,
       swapInPlace: swapInPlace
     });

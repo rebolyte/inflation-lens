@@ -2,15 +2,18 @@
  * @typedef {Object} InflationLensData
  * @property {number} priceCount
  * @property {number | null} detectedYear
+ * @property {number | null} overrideYear
  * @property {boolean} enabled
  * @property {() => Promise<void>} init
  * @property {() => Promise<void>} toggleEnabled
+ * @property {() => Promise<void>} updateYear
  */
 
 document.addEventListener('alpine:init', () => {
   Alpine.data('inflationLens', () => ({
     priceCount: 0,
     detectedYear: null,
+    overrideYear: null,
     enabled: true,
     swapInPlace: false,
 
@@ -51,6 +54,7 @@ document.addEventListener('alpine:init', () => {
           if (response) {
             this.priceCount = response.priceCount || 0;
             this.detectedYear = response.detectedYear;
+            this.overrideYear = response.currentYear || response.detectedYear;
             this.enabled = response.enabled !== false;
             this.swapInPlace = response.swapInPlace === true;
           }
@@ -61,6 +65,7 @@ document.addEventListener('alpine:init', () => {
         if (message.action === 'updateStats') {
           this.priceCount = message.data.priceCount || 0;
           this.detectedYear = message.data.detectedYear;
+          this.overrideYear = message.data.currentYear || message.data.detectedYear;
           this.enabled = message.data.enabled !== false;
           this.swapInPlace = message.data.swapInPlace === true;
         }
@@ -94,6 +99,21 @@ document.addEventListener('alpine:init', () => {
         chrome.tabs.sendMessage(tab.id, {
           action: 'toggleSwapInPlace',
           swapInPlace: this.swapInPlace
+        }).catch((e) => console.log('Content script unavailable:', e.message));
+      }
+    },
+
+    /**
+     * @returns {Promise<void>}
+     */
+    async updateYear() {
+      const year = this.overrideYear ? parseInt(this.overrideYear, 10) : null;
+
+      const tab = await this.getTargetTab();
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'updateYear',
+          year: year
         }).catch((e) => console.log('Content script unavailable:', e.message));
       }
     }
