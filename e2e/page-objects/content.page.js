@@ -130,31 +130,16 @@ export class ContentPage extends BasePage {
    * @returns {Promise<void>}
    */
   async createTestPageWithContent(prices, year) {
-    const priceHtml = prices.map(price => `<p>${price}</p>`).join('\n');
-    const yearMeta = year
-      ? `<meta property="article:published_time" content="${year}-01-01T00:00:00Z" />`
-      : '';
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    if (year) {
+      url.searchParams.set('year', year.toString());
+    }
+    if (prices && prices.length > 0) {
+      url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+    }
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Test Page</title>
-        ${yearMeta}
-      </head>
-      <body>
-        <h1>Test Page</h1>
-        ${priceHtml}
-      </body>
-      </html>
-    `;
-
-    // Create a data URL with the HTML content
-    const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
-    await this.goto(dataUrl);
+    await this.goto(url.toString());
     await this.waitForContentScript();
-    // If we have a year, expect prices to be adjusted
     if (year) {
       await this.waitForPriceProcessing(prices.length);
     }

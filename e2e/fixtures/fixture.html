@@ -3,8 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta property="article:published_time" content="2010-01-01T00:00:00Z" />
+  <meta property="article:published_time" id="article-published-time" content="" />
   <title>Test Page</title>
+  <script>
+    (function() {
+      function init() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const year = urlParams.get('year');
+        if (year) {
+          const meta = document.getElementById('article-published-time');
+          if (meta) {
+            meta.setAttribute('content', `${year}-01-01T00:00:00Z`);
+          }
+        }
+        
+        const pricesParam = urlParams.get('prices');
+        if (pricesParam) {
+          try {
+            const prices = JSON.parse(decodeURIComponent(pricesParam));
+            if (Array.isArray(prices)) {
+              const body = document.body;
+              body.innerHTML = '<h1>Test Page</h1>' + prices.map(price => `<p>${price}</p>`).join('\n');
+            }
+          } catch (e) {
+            console.error('Failed to parse prices:', e);
+          }
+        }
+      }
+      
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
 </head>
 <body>
   <h1>Test Page</h1>

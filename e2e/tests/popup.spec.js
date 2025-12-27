@@ -47,10 +47,14 @@ test.describe('Popup functionality', () => {
     const contentPageHandle = await context.newPage();
     const contentPage = new ContentPage(contentPageHandle);
 
-    await contentPage.createTestPageWithContent(
-      ['This item costs $100.00', 'Another item for $50.00'],
-      2010
-    );
+    const prices = ['This item costs $100.00', 'Another item for $50.00'];
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+    
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+    await contentPage.waitForPriceProcessing(prices.length);
 
     // 2. Open popup in a new page
     const popupPageHandle = await context.newPage();

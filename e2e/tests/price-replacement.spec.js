@@ -7,12 +7,14 @@ test.describe('Price replacement functionality', () => {
     const page = await context.newPage();
     const contentPage = new ContentPage(page);
 
-    // Create a test page with prices from 2010
-    // This sanity checks that price adjustment works in a real browser (vs JSDOM in unit tests)
-    await contentPage.createTestPageWithContent(
-      ['This costs $100.00', 'Sale price: $50.00', 'Premium option: $250.00'],
-      2010
-    );
+    const prices = ['This costs $100.00', 'Sale price: $50.00', 'Premium option: $250.00'];
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+    
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+    await contentPage.waitForPriceProcessing(prices.length);
 
     // Verify prices were adjusted
     const count = await contentPage.getAdjustedPriceCount();
@@ -31,12 +33,24 @@ test.describe('Price replacement functionality', () => {
     // Create first tab with 2010 prices
     const page1 = await context.newPage();
     const contentPage1 = new ContentPage(page1);
-    await contentPage1.createTestPageWithContent(['Tab 1: $100.00'], 2010);
+    const prices1 = ['Tab 1: $100.00'];
+    const url1 = new URL('/fixture.html', 'http://localhost:3000');
+    url1.searchParams.set('year', '2010');
+    url1.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices1)));
+    await contentPage1.goto(url1.toString());
+    await contentPage1.waitForContentScript();
+    await contentPage1.waitForPriceProcessing(prices1.length);
 
     // Create second tab with 2015 prices
     const page2 = await context.newPage();
     const contentPage2 = new ContentPage(page2);
-    await contentPage2.createTestPageWithContent(['Tab 2: $100.00'], 2015);
+    const prices2 = ['Tab 2: $100.00'];
+    const url2 = new URL('/fixture.html', 'http://localhost:3000');
+    url2.searchParams.set('year', '2015');
+    url2.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices2)));
+    await contentPage2.goto(url2.toString());
+    await contentPage2.waitForContentScript();
+    await contentPage2.waitForPriceProcessing(prices2.length);
 
     // Verify first tab
     await contentPage1.bringToFront();
@@ -60,7 +74,13 @@ test.describe('Price replacement functionality', () => {
     // Open a content page
     const contentPageHandle = await context.newPage();
     const contentPage = new ContentPage(contentPageHandle);
-    await contentPage.createTestPageWithContent(['Price: $100.00'], 2010);
+    const prices = ['Price: $100.00'];
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+    await contentPage.waitForPriceProcessing(prices.length);
 
     // Open popup and disable extension
     const popupPageHandle = await context.newPage();
@@ -103,10 +123,13 @@ test.describe('Price replacement functionality', () => {
     // 1. Load a page with prices
     const contentPageHandle = await context.newPage();
     const contentPage = new ContentPage(contentPageHandle);
-    await contentPage.createTestPageWithContent(
-      ['Product A: $100.00', 'Product B: $50.00', 'Product C: $25.00'],
-      2010
-    );
+    const prices = ['Product A: $100.00', 'Product B: $50.00', 'Product C: $25.00'];
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+    await contentPage.waitForPriceProcessing(prices.length);
 
     // 2. Verify prices are adjusted initially
     const initialCount = await contentPage.getAdjustedPriceCount();
