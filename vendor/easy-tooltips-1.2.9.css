@@ -3,6 +3,8 @@
  * Version  : 1.2.9
  * License  : MIT
  * Copyright: 2025 Ewan Howell
+ * 
+ * Edited to use the nfltnlns-tooltip class instead of the tooltip class
  */
 :root {
   --tooltip-vertical-distance: 16px;
@@ -42,7 +44,7 @@
   pointer-events: none;
   user-select: none;
 }
-.tooltip {
+.nfltnlns-tooltip {
   position: fixed;
   transform: translate(-50%, calc(-100% - var(--tooltip-vertical-distance)));
   opacity: 0;
@@ -58,18 +60,18 @@
       1.41421356
   );
 }
-.tooltip.visible {
+.nfltnlns-tooltip.visible {
   opacity: 1;
   translate: 0;
 }
-.tooltip.below {
+.nfltnlns-tooltip.below {
   transform: translate(-50%, var(--tooltip-vertical-distance));
 }
-.tooltip.inside {
+.nfltnlns-tooltip.inside {
   top: var(--tooltip-viewport-padding) !important;
   transform: translateX(-50%);
 }
-.tooltip::before {
+.nfltnlns-tooltip::before {
   content: "";
   position: absolute;
   width: calc(var(--tooltip-arrow-size) + var(--tooltip-border-size));
@@ -92,7 +94,7 @@
     var(--tooltip-border-color) 50.001%
   );
 }
-.tooltip.below::before {
+.nfltnlns-tooltip.below::before {
   bottom: initial;
   top: 0;
   transform: translate(-50%, calc(-100%))
@@ -104,7 +106,7 @@
     )
     rotate(-135deg);
 }
-.tooltip-text {
+.nfltnlns-tooltip .tooltip-text {
   width: max-content;
   max-width: 100%;
   padding: 4px 6px;
@@ -114,4 +116,17 @@
   text-align: center;
   box-sizing: border-box;
   min-width: 100%;
+  font-family: var(
+    --fontStack-sansSerif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans",
+    Helvetica,
+    Arial,
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji"
+  );
+  font-size: var(--fontSize-base, 14px);
 }
