@@ -100,4 +100,12 @@ export class PopupPage extends BasePage {
     await this.page.getByRole('heading', { name: 'Inflation Lens' }).waitFor();
     await this.page.getByTestId('price-count').waitFor();
   }
+
+  /**
+   * Wait for stats to be populated from content page
+   * @returns {Promise<void>}
+   */
+  async waitForStats() {
+    await this.page.getByTestId('detected-year').getByText(/Page from \d{4}/).waitFor();
+  }
 }

@@ -69,6 +69,7 @@ test.describe('Popup functionality', () => {
     // Reload popup to get fresh stats from the active tab
     await popupPageHandle.reload();
     await popupPage.verifyLoaded();
+    await popupPage.waitForStats();
 
     // 5. Verify stats
     const priceCount = await popupPage.getPriceCount();

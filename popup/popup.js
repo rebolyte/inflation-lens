@@ -14,6 +14,17 @@ document.addEventListener('alpine:init', () => {
     enabled: true,
     swapInPlace: false,
 
+    async getTargetTab() {
+      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      // Normal popup: active tab is the webpage (http/https)
+      if (activeTab?.url?.startsWith('http')) {
+        return activeTab;
+      }
+      // E2e tests: popup opens as tab, need to find http tab
+      const allTabs = await chrome.tabs.query({});
+      return allTabs.find(t => t.url?.startsWith('http'));
+    },
+
     /**
      * @returns {Promise<void>}
      */
@@ -23,11 +34,7 @@ document.addEventListener('alpine:init', () => {
       this.enabled = storage.enabled !== false;
       this.swapInPlace = storage.swapInPlace === true;
 
-      // Find http/https tabs only to handle Playwright tests where popup opens
-      // as a regular tab (with undefined url) instead of a popup overlay
-      const tabs = await chrome.tabs.query({ currentWindow: true });
-      const tab = tabs.find(t => t.active && t.url?.startsWith('http'))
-                || tabs.find(t => t.url?.startsWith('http'));
+      const tab = await this.getTargetTab();
 
       if (tab?.id) {
         chrome.tabs.sendMessage(tab.id, { action: 'getStats' }).then((response) => {
@@ -57,9 +64,7 @@ document.addEventListener('alpine:init', () => {
     async toggleEnabled() {
       await chrome.storage.local.set({ enabled: this.enabled });
 
-      const tabs = await chrome.tabs.query({ currentWindow: true });
-      const tab = tabs.find(t => t.active && t.url?.startsWith('http'))
-                || tabs.find(t => t.url?.startsWith('http'));
+      const tab = await this.getTargetTab();
       if (tab?.id) {
         chrome.tabs.sendMessage(tab.id, {
           action: 'toggleEnabled',
@@ -74,9 +79,7 @@ document.addEventListener('alpine:init', () => {
     async toggleSwapInPlace() {
       await chrome.storage.local.set({ swapInPlace: this.swapInPlace });
 
-      const tabs = await chrome.tabs.query({ currentWindow: true });
-      const tab = tabs.find(t => t.active && t.url?.startsWith('http'))
-                || tabs.find(t => t.url?.startsWith('http'));
+      const tab = await this.getTargetTab();
       if (tab?.id) {
         chrome.tabs.sendMessage(tab.id, {
           action: 'toggleSwapInPlace',
