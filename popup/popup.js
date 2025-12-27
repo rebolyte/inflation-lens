@@ -14,15 +14,25 @@ document.addEventListener('alpine:init', () => {
     enabled: true,
     swapInPlace: false,
 
+    /**
+     * Get the target tab to communicate with.
+     * In testing mode (opened with ?testing=true), finds the first HTTP/HTTPS tab.
+     * In normal mode, finds the active tab in the current window.
+     * @returns {Promise<chrome.tabs.Tab | undefined>}
+     */
     async getTargetTab() {
-      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      // Normal popup: active tab is the webpage (http/https)
-      if (activeTab?.url?.startsWith('http')) {
-        return activeTab;
+      const params = new URLSearchParams(window.location.search);
+      const isTesting = params.get('testing') === 'true';
+
+      if (isTesting) {
+        // In E2E tests, the popup is a tab, so we need to find the content page
+        const tabs = await chrome.tabs.query({});
+        return tabs.find(t => t.url && (t.url.startsWith('http://') || t.url.startsWith('https://')));
       }
-      // E2e tests: popup opens as tab, need to find http tab
-      const allTabs = await chrome.tabs.query({});
-      return allTabs.find(t => t.url?.startsWith('http'));
+
+      // Normal usage: get active tab
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      return tab;
     },
 
     /**
