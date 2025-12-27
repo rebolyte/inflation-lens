@@ -162,4 +162,26 @@ export class PopupPage extends BasePage {
     const swapToggle = this.page.getByTestId('swap-toggle');
     return await swapToggle.isVisible();
   }
+
+  /**
+   * Check if swap in place is enabled
+   * @returns {Promise<boolean>}
+   */
+  async isSwapInPlace() {
+    const checkbox = this.page.getByTestId('swap-toggle');
+    return await checkbox.isChecked();
+  }
+
+  /**
+   * Set the swap in place state to a specific value
+   * @param {boolean} swapInPlace
+   * @returns {Promise<void>}
+   */
+  async setSwapInPlace(swapInPlace) {
+    const checkbox = this.page.getByTestId('swap-toggle');
+    const currentState = await checkbox.isChecked();
+    if (currentState !== swapInPlace) {
+      await checkbox.click();
+    }
+  }
 }

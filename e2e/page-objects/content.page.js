@@ -154,4 +154,14 @@ export class ContentPage extends BasePage {
       // Already gone, that's fine
     });
   }
+
+  /**
+   * Get the displayed text of a price element
+   * @param {number} index
+   * @returns {Promise<string | null>}
+   */
+  async getDisplayedPriceText(index) {
+    const element = this.getAdjustedPriceAt(index);
+    return await element.textContent();
+  }
 }

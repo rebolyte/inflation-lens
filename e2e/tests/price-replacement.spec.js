@@ -168,4 +168,54 @@ test.describe('Price replacement functionality', () => {
     await contentPageHandle.close();
     await popupPageHandle.close();
   });
+
+  test('should swap prices in place when toggle is enabled and disabled', async ({ context, extensionId }) => {
+    const contentPageHandle = await context.newPage();
+    const contentPage = new ContentPage(contentPageHandle);
+    const prices = ['Product A: $100.00', 'Product B: $50.00'];
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+    await contentPage.waitForPriceProcessing(prices.length);
+
+    const originalPrice0 = await contentPage.getOriginalPrice(0);
+    const adjustedPrice0 = await contentPage.getAdjustedPrice(0);
+    const originalPrice1 = await contentPage.getOriginalPrice(1);
+    const adjustedPrice1 = await contentPage.getAdjustedPrice(1);
+
+    const popupPageHandle = await context.newPage();
+    const popupPage = new PopupPage(popupPageHandle, extensionId);
+    await popupPage.open();
+    await popupPage.waitForStats();
+
+    expect(await popupPage.isSwapInPlace()).toBe(false);
+    const displayedText0Before = await contentPage.getDisplayedPriceText(0);
+    const displayedText1Before = await contentPage.getDisplayedPriceText(1);
+    expect(displayedText0Before).toBe(originalPrice0);
+    expect(displayedText1Before).toBe(originalPrice1);
+
+    await popupPage.setSwapInPlace(true);
+    expect(await popupPage.isSwapInPlace()).toBe(true);
+    await contentPage.bringToFront();
+
+    const displayedText0After = await contentPage.getDisplayedPriceText(0);
+    const displayedText1After = await contentPage.getDisplayedPriceText(1);
+    expect(displayedText0After).toBe(adjustedPrice0);
+    expect(displayedText1After).toBe(adjustedPrice1);
+
+    await popupPage.bringToFront();
+    await popupPage.setSwapInPlace(false);
+    expect(await popupPage.isSwapInPlace()).toBe(false);
+    await contentPage.bringToFront();
+
+    const displayedText0Final = await contentPage.getDisplayedPriceText(0);
+    const displayedText1Final = await contentPage.getDisplayedPriceText(1);
+    expect(displayedText0Final).toBe(originalPrice0);
+    expect(displayedText1Final).toBe(originalPrice1);
+
+    await contentPageHandle.close();
+    await popupPageHandle.close();
+  });
 });

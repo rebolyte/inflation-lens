@@ -71,6 +71,9 @@ test.describe('Year override functionality', () => {
     const originalYear = await contentPage.getOriginalYear(0);
     expect(originalYear).toBe('2010');
 
+    const adjustedPrice2010_1 = await contentPage.getAdjustedPrice(0);
+    const adjustedPrice2010_2 = await contentPage.getAdjustedPrice(1);
+
     const popupPageHandle = await context.newPage();
     const popupPage = new PopupPage(popupPageHandle, extensionId);
     await popupPage.open();
@@ -87,10 +90,16 @@ test.describe('Year override functionality', () => {
     const newYear = await contentPage.getOriginalYear(0);
     expect(newYear).toBe('2015');
 
-    const adjustedPrice1 = await contentPage.getAdjustedPrice(0);
-    const adjustedPrice2 = await contentPage.getAdjustedPrice(1);
-    expect(adjustedPrice1).toBeTruthy();
-    expect(adjustedPrice2).toBeTruthy();
+    const adjustedPrice2015_1 = await contentPage.getAdjustedPrice(0);
+    const adjustedPrice2015_2 = await contentPage.getAdjustedPrice(1);
+    
+    const price2010_1 = parseFloat(adjustedPrice2010_1.replace(/[$,]/g, ''));
+    const price2010_2 = parseFloat(adjustedPrice2010_2.replace(/[$,]/g, ''));
+    const price2015_1 = parseFloat(adjustedPrice2015_1.replace(/[$,]/g, ''));
+    const price2015_2 = parseFloat(adjustedPrice2015_2.replace(/[$,]/g, ''));
+    
+    expect(price2010_1).toBeGreaterThan(price2015_1);
+    expect(price2010_2).toBeGreaterThan(price2015_2);
 
     await contentPageHandle.close();
     await popupPageHandle.close();

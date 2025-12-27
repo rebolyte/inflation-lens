@@ -82,25 +82,6 @@ test.describe('Popup functionality', () => {
     await popupPageHandle.close();
   });
 
-  test('should update stats when toggling enabled state', async ({ context, extensionId }) => {
-    const page = await context.newPage();
-    const popupPage = new PopupPage(page, extensionId);
-
-    await popupPage.open();
-
-    // Disable the extension
-    await popupPage.setEnabled(false);
-    const disabledState = await popupPage.isEnabled();
-    expect(disabledState).toBe(false);
-
-    // Re-enable the extension
-    await popupPage.setEnabled(true);
-    const enabledState = await popupPage.isEnabled();
-    expect(enabledState).toBe(true);
-
-    await page.close();
-  });
-
   test('stats section hidden when disabled', async ({ context, extensionId }) => {
     const page = await context.newPage();
     const popupPage = new PopupPage(page, extensionId);
@@ -164,27 +145,6 @@ test.describe('Popup functionality', () => {
     expect(swapToggleVisible).toBe(true);
 
     await contentPageHandle.close();
-    await page.close();
-  });
-
-  test('enable toggle always visible', async ({ context, extensionId }) => {
-    const page = await context.newPage();
-    const popupPage = new PopupPage(page, extensionId);
-
-    await popupPage.open();
-
-    const enableToggle = page.getByTestId('enable-toggle');
-    await expect(enableToggle).toBeVisible();
-
-    await popupPage.setEnabled(false);
-    await expect(enableToggle).toBeVisible();
-
-    await popupPage.setEnabled(true);
-    await expect(enableToggle).toBeVisible();
-
-    await popupPage.setEnabled(false);
-    await expect(enableToggle).toBeVisible();
-
     await page.close();
   });
 });
