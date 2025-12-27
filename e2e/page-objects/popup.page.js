@@ -36,16 +36,8 @@ export class PopupPage extends BasePage {
    * @returns {Promise<string | null>}
    */
   async getDetectedYear() {
-    const yearElement = this.page.getByTestId('detected-year');
-    const isVisible = await yearElement.isVisible();
-
-    if (!isVisible) {
-      return null;
-    }
-
-    const text = await yearElement.textContent();
-    const match = text?.match(/Page from (\d{4})/);
-    return match ? match[1] : null;
+    const yearValue = await this.getYearInputValue();
+    return yearValue || null;
   }
 
   /**
@@ -106,6 +98,68 @@ export class PopupPage extends BasePage {
    * @returns {Promise<void>}
    */
   async waitForStats() {
-    await this.page.getByTestId('detected-year').getByText(/Page from \d{4}/).waitFor();
+    await this.page.getByTestId('price-count').waitFor();
+    await this.page.waitForTimeout(200);
+  }
+
+  /**
+   * Get the year input element
+   * @returns {import('@playwright/test').Locator}
+   */
+  getYearInput() {
+    return this.page.getByTestId('year-input');
+  }
+
+  /**
+   * Set the year input value
+   * @param {number | null} year
+   * @returns {Promise<void>}
+   */
+  async setYearInput(year) {
+    const input = this.getYearInput();
+    if (year === null || year === undefined) {
+      await input.clear();
+    } else {
+      await input.fill(year.toString());
+      await input.blur();
+    }
+    await this.page.waitForTimeout(100);
+  }
+
+  /**
+   * Get the current year input value
+   * @returns {Promise<string>}
+   */
+  async getYearInputValue() {
+    const input = this.getYearInput();
+    const value = await input.inputValue();
+    return value || '';
+  }
+
+  /**
+   * Check if the year input is visible
+   * @returns {Promise<boolean>}
+   */
+  async isYearInputVisible() {
+    const input = this.getYearInput();
+    return await input.isVisible();
+  }
+
+  /**
+   * Check if the stats section is visible
+   * @returns {Promise<boolean>}
+   */
+  async isStatsSectionVisible() {
+    const statsSection = this.page.locator('.stats');
+    return await statsSection.isVisible();
+  }
+
+  /**
+   * Check if the swap toggle is visible
+   * @returns {Promise<boolean>}
+   */
+  async isSwapToggleVisible() {
+    const swapToggle = this.page.getByTestId('swap-toggle');
+    return await swapToggle.isVisible();
   }
 }

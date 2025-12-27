@@ -100,4 +100,91 @@ test.describe('Popup functionality', () => {
 
     await page.close();
   });
+
+  test('stats section hidden when disabled', async ({ context, extensionId }) => {
+    const page = await context.newPage();
+    const popupPage = new PopupPage(page, extensionId);
+
+    await popupPage.open();
+
+    const enableToggle = page.getByTestId('enable-toggle');
+    await expect(enableToggle).toBeVisible();
+
+    await popupPage.setEnabled(false);
+
+    const statsVisible = await popupPage.isStatsSectionVisible();
+    expect(statsVisible).toBe(false);
+
+    const yearInputVisible = await popupPage.isYearInputVisible();
+    expect(yearInputVisible).toBe(false);
+
+    const swapToggleVisible = await popupPage.isSwapToggleVisible();
+    expect(swapToggleVisible).toBe(false);
+
+    await page.close();
+  });
+
+  test('stats section visible when enabled', async ({ context, extensionId }) => {
+    const contentPageHandle = await context.newPage();
+    const contentPage = new ContentPage(contentPageHandle);
+    const prices = ['This item costs $100.00'];
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+    
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+    await contentPage.waitForPriceProcessing(prices.length);
+
+    const page = await context.newPage();
+    const popupPage = new PopupPage(page, extensionId);
+    await popupPage.open();
+    await contentPage.bringToFront();
+    await popupPage.bringToFront();
+    await page.reload();
+    await popupPage.verifyLoaded();
+    await popupPage.waitForStats();
+
+    await popupPage.setEnabled(false);
+    await page.waitForTimeout(100);
+
+    const statsVisibleBefore = await popupPage.isStatsSectionVisible();
+    expect(statsVisibleBefore).toBe(false);
+
+    await popupPage.setEnabled(true);
+    await page.waitForTimeout(200);
+
+    const statsVisible = await popupPage.isStatsSectionVisible();
+    expect(statsVisible).toBe(true);
+
+    const yearInputVisible = await popupPage.isYearInputVisible();
+    expect(yearInputVisible).toBe(true);
+
+    const swapToggleVisible = await popupPage.isSwapToggleVisible();
+    expect(swapToggleVisible).toBe(true);
+
+    await contentPageHandle.close();
+    await page.close();
+  });
+
+  test('enable toggle always visible', async ({ context, extensionId }) => {
+    const page = await context.newPage();
+    const popupPage = new PopupPage(page, extensionId);
+
+    await popupPage.open();
+
+    const enableToggle = page.getByTestId('enable-toggle');
+    await expect(enableToggle).toBeVisible();
+
+    await popupPage.setEnabled(false);
+    await expect(enableToggle).toBeVisible();
+
+    await popupPage.setEnabled(true);
+    await expect(enableToggle).toBeVisible();
+
+    await popupPage.setEnabled(false);
+    await expect(enableToggle).toBeVisible();
+
+    await page.close();
+  });
 });

@@ -9,10 +9,12 @@
     (function() {
       function init() {
         const urlParams = new URLSearchParams(window.location.search);
-        const year = urlParams.get('year') || '2010';
+        const year = urlParams.get('year');
         const meta = document.getElementById('article-published-time');
-        if (meta) {
+        if (meta && year) {
           meta.setAttribute('content', `${year}-01-01T00:00:00Z`);
+        } else if (meta) {
+          meta.remove();
         }
         
         const pricesParam = urlParams.get('prices');
