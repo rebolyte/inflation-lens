@@ -12,14 +12,16 @@ document.addEventListener('alpine:init', () => {
     priceCount: 0,
     detectedYear: null,
     enabled: true,
+    swapInPlace: false,
 
     /**
      * @returns {Promise<void>}
      */
     async init() {
       console.log('[Inflation Lens] Popup initializing');
-      const storage = await chrome.storage.local.get(['enabled']);
+      const storage = await chrome.storage.local.get(['enabled', 'swapInPlace']);
       this.enabled = storage.enabled !== false;
+      this.swapInPlace = storage.swapInPlace === true;
 
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
@@ -29,6 +31,7 @@ document.addEventListener('alpine:init', () => {
             this.priceCount = response.priceCount || 0;
             this.detectedYear = response.detectedYear;
             this.enabled = response.enabled !== false;
+            this.swapInPlace = response.swapInPlace === true;
           }
         }).catch((e) => console.log('Content script unavailable:', e.message));
       }
@@ -38,6 +41,7 @@ document.addEventListener('alpine:init', () => {
           this.priceCount = message.data.priceCount || 0;
           this.detectedYear = message.data.detectedYear;
           this.enabled = message.data.enabled !== false;
+          this.swapInPlace = message.data.swapInPlace === true;
         }
         return false;
       });
@@ -54,6 +58,21 @@ document.addEventListener('alpine:init', () => {
         chrome.tabs.sendMessage(tab.id, {
           action: 'toggleEnabled',
           enabled: this.enabled
+        }).catch((e) => console.log('Content script unavailable:', e.message));
+      }
+    },
+
+    /**
+     * @returns {Promise<void>}
+     */
+    async toggleSwapInPlace() {
+      await chrome.storage.local.set({ swapInPlace: this.swapInPlace });
+
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'toggleSwapInPlace',
+          swapInPlace: this.swapInPlace
         }).catch((e) => console.log('Content script unavailable:', e.message));
       }
     }

@@ -109,10 +109,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (!isEnabled) {
       document.querySelectorAll('.inflation-adjusted-price').forEach(span => {
         const originalPrice = span.getAttribute('data-original-price');
-        if (originalPrice) {
-          span.outerHTML = originalPrice;
-        } else if (span.textContent) {
-          span.outerHTML = span.textContent;
+        const parent = span.parentNode;
+        if (parent) {
+          if (originalPrice) {
+            const textNode = document.createTextNode(originalPrice);
+            parent.replaceChild(textNode, span);
+          } else if (span.textContent) {
+            const textNode = document.createTextNode(span.textContent);
+            parent.replaceChild(textNode, span);
+          }
         }
       });
       totalAdjusted = 0;
