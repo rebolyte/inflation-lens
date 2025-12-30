@@ -11,6 +11,7 @@ import { findAndReplacePrices } from './price-replacer.js';
  * @property {boolean} swapInPlace - Whether to swap prices in place or show tooltip
  * @property {number | null} rafId - RAF ID for batching DOM mutations
  * @property {Set<Element>} pendingNodes - Nodes pending processing from mutations
+ * @property {MutationObserver | null} observer - MutationObserver instance
  */
 
 /** @type {ExtensionState} */
@@ -21,7 +22,8 @@ const state = {
   isEnabled: true,
   swapInPlace: false,
   rafId: null,
-  pendingNodes: new Set()
+  pendingNodes: new Set(),
+  observer: null
 };
 
 /**
@@ -72,7 +74,10 @@ function processPage() {
  * @returns {void}
  */
 function setupMutationObserver() {
-  const observer = new MutationObserver((mutations) => {
+  // Don't create duplicate observers
+  if (state.observer) return;
+
+  state.observer = new MutationObserver((mutations) => {
     if (!state.isEnabled || !state.pageYear) return;
 
     // Collect all added nodes
@@ -87,28 +92,35 @@ function setupMutationObserver() {
     // Use RAF to batch processing - only schedule if not already scheduled
     if (!state.rafId) {
       state.rafId = requestAnimationFrame(() => {
-        // Process all pending nodes
-        state.pendingNodes.forEach(node => {
-          if (state.pageYear) {
-            const count = findAndReplacePrices(node, state.pageYear, {
-              calculateInflation,
-              formatPrice,
-              parsePrice,
-              getAdjustedYear
-            }, state.swapInPlace);
-            state.totalAdjusted += count;
-          }
-        });
+        try {
+          // Process all pending nodes that are still connected to DOM
+          state.pendingNodes.forEach(node => {
+            if (node.isConnected && state.pageYear) {
+              const count = findAndReplacePrices(node, state.pageYear, {
+                calculateInflation,
+                formatPrice,
+                parsePrice,
+                getAdjustedYear
+              }, state.swapInPlace);
+              state.totalAdjusted += count;
+            }
+          });
 
-        // Clear pending nodes and RAF ID
-        state.pendingNodes.clear();
-        state.rafId = null;
-        sendStatsToPopup();
+          // Clear pending nodes and RAF ID
+          state.pendingNodes.clear();
+          state.rafId = null;
+          sendStatsToPopup();
+        } catch (error) {
+          // Handle errors gracefully (e.g., if page navigates away)
+          console.error('[Inflation Lens] Error processing mutations:', error);
+          state.pendingNodes.clear();
+          state.rafId = null;
+        }
       });
     }
   });
 
-  observer.observe(document.body, {
+  state.observer.observe(document.body, {
     childList: true,
     subtree: true
   });
@@ -156,9 +168,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'toggleEnabled') {
     state.isEnabled = message.enabled;
     if (!state.isEnabled) {
+      // Disconnect observer when disabled to stop wasting resources
+      if (state.observer) {
+        state.observer.disconnect();
+        state.observer = null;
+      }
       revertAllPrices();
     } else {
       processPage();
+      // Reconnect observer when re-enabled
+      setupMutationObserver();
     }
     sendStatsToPopup();
     // @ts-ignore - sendResponse type mismatch in Chrome types
