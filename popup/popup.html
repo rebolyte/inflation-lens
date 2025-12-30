@@ -16,39 +16,46 @@
     </div>
 
     <div class="content">
-      <div class="controls">
-        <label class="toggle-label">
-          <input data-testid="enable-toggle" type="checkbox" x-model="enabled" @change="toggleEnabled" />
-          <span>Enable inflation adjustment</span>
-        </label>
+      <div class="message info" data-testid="unavailable-message" x-show="!contentScriptAvailable">
+        <p>Extension not available on this page</p>
+        <p class="small">The extension only works on regular web pages (http:// or https://)</p>
       </div>
 
-      <div class="stats" x-show="enabled">
-        <p class="stat-line">
-          <strong data-testid="price-count" x-text="priceCount"></strong>
-          <span x-text="priceCount === 1 ? ' price adjusted' : ' prices adjusted'"></span>
-        </p>
-        <p class="stat-line small">
-          <span>Page from</span>
-          <input
-            data-testid="year-input"
-            type="number"
-            min="1913"
-            max="2023"
-            x-model="overrideYear"
-            @input="updateYear"
-            placeholder="Year"
-            :class="yearError ? 'year-input error' : 'year-input'"
-          />
-        </p>
-        <p class="error-message" x-show="yearError" x-text="yearError"></p>
-      </div>
+      <div x-show="contentScriptAvailable">
+        <div class="controls">
+          <label class="toggle-label">
+            <input data-testid="enable-toggle" type="checkbox" x-model="enabled" @change="toggleEnabled" />
+            <span>Enable inflation adjustment</span>
+          </label>
+        </div>
 
-      <div class="controls" x-show="enabled">
-        <label class="toggle-label">
-          <input data-testid="swap-toggle" type="checkbox" x-model="swapInPlace" @change="toggleSwapInPlace" />
-          <span>Swap prices in place</span>
-        </label>
+        <div class="stats" x-show="enabled">
+          <p class="stat-line">
+            <strong data-testid="price-count" x-text="priceCount"></strong>
+            <span x-text="priceCount === 1 ? ' price adjusted' : ' prices adjusted'"></span>
+          </p>
+          <p class="stat-line small">
+            <span>Page from</span>
+            <input
+              data-testid="year-input"
+              type="number"
+              min="1913"
+              max="2023"
+              x-model="overrideYear"
+              @input="updateYear"
+              placeholder="Year"
+              :class="yearError ? 'year-input error' : 'year-input'"
+            />
+          </p>
+          <p class="error-message" x-show="yearError" x-text="yearError"></p>
+        </div>
+
+        <div class="controls" x-show="enabled">
+          <label class="toggle-label">
+            <input data-testid="swap-toggle" type="checkbox" x-model="swapInPlace" @change="toggleSwapInPlace" />
+            <span>Swap prices in place</span>
+          </label>
+        </div>
       </div>
     </div>
 

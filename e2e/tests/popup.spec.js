@@ -147,4 +147,32 @@ test.describe('Popup functionality', () => {
     await contentPageHandle.close();
     await page.close();
   });
+
+  test('shows unavailable message when content script not active', async ({ context, extensionId }) => {
+    // Open popup directly without a content page (simulates chrome:// pages or other restricted pages)
+    const page = await context.newPage();
+    const popupPage = new PopupPage(page, extensionId);
+
+    await popupPage.open();
+    await popupPage.verifyLoaded();
+    await page.waitForTimeout(500); // Wait for init to complete
+
+    // Verify unavailable message is shown
+    const isUnavailableVisible = await popupPage.isUnavailableMessageVisible();
+    expect(isUnavailableVisible).toBe(true);
+
+    const unavailableMessage = await popupPage.getUnavailableMessage();
+    expect(unavailableMessage).toContain('Extension not available on this page');
+    expect(unavailableMessage).toContain('http://');
+
+    // Verify stats section is hidden
+    const statsVisible = await popupPage.isStatsSectionVisible();
+    expect(statsVisible).toBe(false);
+
+    // Verify year input is hidden
+    const yearInputVisible = await popupPage.isYearInputVisible();
+    expect(yearInputVisible).toBe(false);
+
+    await page.close();
+  });
 });

@@ -214,4 +214,24 @@ export class PopupPage extends BasePage {
     const errorMessage = this.page.locator('.error-message');
     return await errorMessage.isVisible();
   }
+
+  /**
+   * Check if the unavailable message is visible
+   * @returns {Promise<boolean>}
+   */
+  async isUnavailableMessageVisible() {
+    const unavailableMessage = this.page.getByTestId('unavailable-message');
+    return await unavailableMessage.isVisible();
+  }
+
+  /**
+   * Get the unavailable message text
+   * @returns {Promise<string>}
+   */
+  async getUnavailableMessage() {
+    const unavailableMessage = this.page.getByTestId('unavailable-message');
+    const isVisible = await unavailableMessage.isVisible();
+    if (!isVisible) return '';
+    return await unavailableMessage.textContent() || '';
+  }
 }

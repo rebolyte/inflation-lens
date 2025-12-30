@@ -17,6 +17,7 @@ document.addEventListener('alpine:init', () => {
     enabled: true,
     swapInPlace: false,
     yearError: '',
+    contentScriptAvailable: true,
 
     /**
      * Get the target tab to communicate with.
@@ -69,19 +70,26 @@ document.addEventListener('alpine:init', () => {
       if (tab?.id) {
         chrome.tabs.sendMessage(tab.id, { action: 'getStats' }).then((response) => {
           if (response) {
+            this.contentScriptAvailable = true;
             this.priceCount = response.priceCount || 0;
             this.detectedYear = response.detectedYear;
-            this.overrideYear = response.detectedYear !== null && response.detectedYear !== undefined 
-              ? (response.currentYear || response.detectedYear) 
+            this.overrideYear = response.detectedYear !== null && response.detectedYear !== undefined
+              ? (response.currentYear || response.detectedYear)
               : null;
             this.enabled = response.enabled !== false;
             this.swapInPlace = response.swapInPlace === true;
           }
-        }).catch((e) => console.log('Content script unavailable:', e.message));
+        }).catch((e) => {
+          console.log('Content script unavailable:', e.message);
+          this.contentScriptAvailable = false;
+        });
+      } else {
+        this.contentScriptAvailable = false;
       }
 
       chrome.runtime.onMessage.addListener((message) => {
         if (message.action === 'updateStats') {
+          this.contentScriptAvailable = true;
           this.priceCount = message.data.priceCount || 0;
           this.detectedYear = message.data.detectedYear;
           this.overrideYear = message.data.detectedYear !== null && message.data.detectedYear !== undefined
