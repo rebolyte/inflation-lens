@@ -54,6 +54,12 @@ describe("inflation-calculator", () => {
       assert.strictEqual(parsePrice("$2.5b"), 2500000000);
     });
 
+    it("parses amounts with T suffix", () => {
+      assert.strictEqual(parsePrice("$1T"), 1000000000000);
+      assert.strictEqual(parsePrice("$2.5t"), 2500000000000);
+      assert.strictEqual(parsePrice("$1.5T"), 1500000000000);
+    });
+
     it("handles edge case amounts", () => {
       assert.strictEqual(parsePrice("$0.01"), 0.01);
       assert.strictEqual(parsePrice("$0.99"), 0.99);
@@ -87,11 +93,14 @@ describe("inflation-calculator", () => {
     });
 
     it("handles very large numbers", () => {
-      // Trillion not supported (no T suffix), but should parse as number
+      // Raw trillion amount
       const trillionStr = "999000000000"; // 999 billion
       assert.strictEqual(parsePrice(trillionStr), 999000000000);
       // Very large B suffix
       assert.strictEqual(parsePrice("$999B"), 999000000000);
+      // Trillion with T suffix
+      assert.strictEqual(parsePrice("$1T"), 1000000000000);
+      assert.strictEqual(parsePrice("$5.5T"), 5500000000000);
     });
 
     it("handles decimal edge cases", () => {
@@ -131,6 +140,14 @@ describe("inflation-calculator", () => {
       assert.strictEqual(formatPrice(6985327831.27), "$6.99B");
     });
 
+    it("formats trillions with T suffix", () => {
+      assert.strictEqual(formatPrice(1000000000000), "$1T");
+      assert.strictEqual(formatPrice(1500000000000), "$1.5T");
+      assert.strictEqual(formatPrice(2000000000000), "$2T");
+      assert.strictEqual(formatPrice(2500000000000), "$2.5T");
+      assert.strictEqual(formatPrice(5500000000000), "$5.5T");
+    });
+
     it("handles edge case amounts", () => {
       assert.strictEqual(formatPrice(0), "$0.00");
       assert.strictEqual(formatPrice(0.01), "$0.01");
@@ -139,7 +156,9 @@ describe("inflation-calculator", () => {
     });
 
     it("formats very large numbers correctly", () => {
-      assert.strictEqual(formatPrice(1e12), "$1000B");
+      assert.strictEqual(formatPrice(1e12), "$1T");
+      assert.strictEqual(formatPrice(1e13), "$10T");
+      assert.strictEqual(formatPrice(999e12), "$999T");
     });
   });
 
