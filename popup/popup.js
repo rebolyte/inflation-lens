@@ -16,6 +16,7 @@ document.addEventListener('alpine:init', () => {
     overrideYear: null,
     enabled: true,
     swapInPlace: false,
+    yearError: '',
 
     /**
      * Get the target tab to communicate with.
@@ -137,12 +138,20 @@ document.addEventListener('alpine:init', () => {
         // Validate that parsing succeeded and year is in valid range
         if (!isNaN(parsed) && parsed >= 1913 && parsed <= 2025) {
           year = parsed;
+          this.yearError = ''; // Clear error on valid input
         } else {
           console.warn('[Inflation Lens] Invalid year input:', this.overrideYear);
-          // Reset to detected year or null if invalid
-          this.overrideYear = this.detectedYear;
+          // Show error message to user
+          this.yearError = 'Year must be between 1913-2025';
+          // Reset to detected year after showing error
+          setTimeout(() => {
+            this.overrideYear = this.detectedYear;
+            this.yearError = '';
+          }, 2000);
           return;
         }
+      } else {
+        this.yearError = ''; // Clear error when input is empty
       }
 
       const tab = await this.getTargetTab();

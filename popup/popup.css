@@ -221,3 +221,20 @@ body {
 .year-input::placeholder {
   color: #999;
 }
+
+.year-input.error {
+  border-color: #c62828;
+  background: #ffebee;
+}
+
+.year-input.error:focus {
+  border-color: #c62828;
+  box-shadow: 0 0 0 2px rgba(198, 40, 40, 0.1);
+}
+
+.error-message {
+  color: #c62828;
+  font-size: 11px;
+  margin-top: 4px;
+  margin-bottom: 0;
+}

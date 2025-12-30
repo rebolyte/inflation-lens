@@ -30,17 +30,18 @@
         </p>
         <p class="stat-line small">
           <span>Page from</span>
-          <input 
-            data-testid="year-input" 
-            type="number" 
-            min="1913" 
-            max="2023" 
-            x-model="overrideYear" 
+          <input
+            data-testid="year-input"
+            type="number"
+            min="1913"
+            max="2023"
+            x-model="overrideYear"
             @input="updateYear"
             placeholder="Year"
-            class="year-input"
+            :class="yearError ? 'year-input error' : 'year-input'"
           />
         </p>
+        <p class="error-message" x-show="yearError" x-text="yearError"></p>
       </div>
 
       <div class="controls" x-show="enabled">
