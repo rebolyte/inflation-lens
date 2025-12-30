@@ -69,6 +69,39 @@ describe("inflation-calculator", () => {
       assert.ok(isNaN(parsePrice("invalid")));
       assert.ok(isNaN(parsePrice("")));
     });
+
+    it("handles edge cases with special characters", () => {
+      // Multiple dollar signs
+      assert.ok(isNaN(parsePrice("$$$")));
+      // Just letters
+      assert.ok(isNaN(parsePrice("abc")));
+      // Mixed invalid input
+      assert.ok(isNaN(parsePrice("$abc")));
+    });
+
+    it("handles negative numbers", () => {
+      // Note: parsePrice doesn't explicitly handle negatives, but parseFloat does
+      assert.strictEqual(parsePrice("-$100"), -100);
+      // $- parses as -50 ($ is stripped, leaving -50)
+      assert.strictEqual(parsePrice("$-50"), -50);
+    });
+
+    it("handles very large numbers", () => {
+      // Trillion not supported (no T suffix), but should parse as number
+      const trillionStr = "999000000000"; // 999 billion
+      assert.strictEqual(parsePrice(trillionStr), 999000000000);
+      // Very large B suffix
+      assert.strictEqual(parsePrice("$999B"), 999000000000);
+    });
+
+    it("handles decimal edge cases", () => {
+      // No cents
+      assert.strictEqual(parsePrice("$100."), 100);
+      // Leading zero
+      assert.strictEqual(parsePrice("$0.5"), 0.5);
+      // Many decimal places (parseFloat truncates)
+      assert.strictEqual(parsePrice("$1.123456"), 1.123456);
+    });
   });
 
   describe("formatPrice", () => {

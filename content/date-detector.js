@@ -63,6 +63,8 @@ export function detectFromJsonLd() {
         }
       }
     } catch (e) {
+      // JSON-LD parsing failed - likely malformed JSON, continue to next script
+      console.debug('[Inflation Lens] Failed to parse JSON-LD script:', e.message);
       continue;
     }
   }

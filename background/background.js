@@ -1,19 +1,13 @@
 console.log('[Inflation Lens] Background script initializing');
 
+/**
+ * Initialize extension storage with default values on installation or update.
+ * Sets enabled state to true by default.
+ */
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[Inflation Lens] Extension installed/updated');
   chrome.storage.local.set({
     enabled: true,
-    disabledDomains: []
+    swapInPlace: false
   });
-});
-
-/**
- * @param {Object} request
- * @param {chrome.runtime.MessageSender} sender
- * @param {function} sendResponse
- * @returns {boolean}
- */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  return true;
 });
