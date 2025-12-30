@@ -449,4 +449,106 @@ test.describe('Year override functionality', () => {
     await contentPageHandle.close();
     await popupPageHandle.close();
   });
+
+  test('invalid year shows error message and visual feedback', async ({ context, extensionId }) => {
+    const contentPageHandle = await context.newPage();
+    const contentPage = new ContentPage(contentPageHandle);
+    const prices = ['This item costs $100.00'];
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+    await contentPage.waitForPriceProcessing(prices.length);
+
+    const popupPageHandle = await context.newPage();
+    const popupPage = new PopupPage(popupPageHandle, extensionId);
+    await popupPage.open();
+    await contentPage.bringToFront();
+    await popupPage.bringToFront();
+    await popupPageHandle.reload();
+    await popupPage.verifyLoaded();
+    await popupPage.waitForStats();
+
+    // Verify no error initially
+    let hasError = await popupPage.hasYearInputError();
+    expect(hasError).toBe(false);
+    let isErrorVisible = await popupPage.isErrorMessageVisible();
+    expect(isErrorVisible).toBe(false);
+
+    // Test year too high (2026 > 2025)
+    const yearInput = popupPage.getYearInput();
+    await yearInput.fill('2026');
+    await popupPageHandle.waitForTimeout(100);
+
+    // Check error message appears
+    isErrorVisible = await popupPage.isErrorMessageVisible();
+    expect(isErrorVisible).toBe(true);
+
+    const errorMessage = await popupPage.getErrorMessage();
+    expect(errorMessage).toBe('Year must be between 1913-2025');
+
+    // Check input has error styling
+    hasError = await popupPage.hasYearInputError();
+    expect(hasError).toBe(true);
+
+    // Wait for auto-reset (2 seconds)
+    await popupPageHandle.waitForTimeout(2100);
+
+    // Verify error cleared and input reset to detected year
+    isErrorVisible = await popupPage.isErrorMessageVisible();
+    expect(isErrorVisible).toBe(false);
+
+    hasError = await popupPage.hasYearInputError();
+    expect(hasError).toBe(false);
+
+    const yearValue = await popupPage.getYearInputValue();
+    expect(yearValue).toBe('2010');
+
+    // Test year too low (1900 < 1913)
+    await yearInput.fill('1900');
+    await popupPageHandle.waitForTimeout(100);
+
+    isErrorVisible = await popupPage.isErrorMessageVisible();
+    expect(isErrorVisible).toBe(true);
+
+    hasError = await popupPage.hasYearInputError();
+    expect(hasError).toBe(true);
+
+    // Wait for auto-reset
+    await popupPageHandle.waitForTimeout(2100);
+
+    isErrorVisible = await popupPage.isErrorMessageVisible();
+    expect(isErrorVisible).toBe(false);
+
+    // Test invalid text input
+    await yearInput.fill('abcd');
+    await popupPageHandle.waitForTimeout(100);
+
+    isErrorVisible = await popupPage.isErrorMessageVisible();
+    expect(isErrorVisible).toBe(true);
+
+    hasError = await popupPage.hasYearInputError();
+    expect(hasError).toBe(true);
+
+    // Wait for auto-reset
+    await popupPageHandle.waitForTimeout(2100);
+
+    isErrorVisible = await popupPage.isErrorMessageVisible();
+    expect(isErrorVisible).toBe(false);
+
+    // Test valid year clears error
+    await yearInput.fill('2015');
+    await popupPageHandle.waitForTimeout(100);
+
+    isErrorVisible = await popupPage.isErrorMessageVisible();
+    expect(isErrorVisible).toBe(false);
+
+    hasError = await popupPage.hasYearInputError();
+    expect(hasError).toBe(false);
+
+    await contentPageHandle.close();
+    await popupPageHandle.close();
+  });
 });

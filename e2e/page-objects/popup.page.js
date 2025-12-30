@@ -184,4 +184,34 @@ export class PopupPage extends BasePage {
       await checkbox.click();
     }
   }
+
+  /**
+   * Check if the year input has error styling
+   * @returns {Promise<boolean>}
+   */
+  async hasYearInputError() {
+    const input = this.getYearInput();
+    const classes = await input.getAttribute('class');
+    return classes?.includes('error') ?? false;
+  }
+
+  /**
+   * Get the error message text
+   * @returns {Promise<string>}
+   */
+  async getErrorMessage() {
+    const errorMessage = this.page.locator('.error-message');
+    const isVisible = await errorMessage.isVisible();
+    if (!isVisible) return '';
+    return await errorMessage.textContent() || '';
+  }
+
+  /**
+   * Check if error message is visible
+   * @returns {Promise<boolean>}
+   */
+  async isErrorMessageVisible() {
+    const errorMessage = this.page.locator('.error-message');
+    return await errorMessage.isVisible();
+  }
 }
