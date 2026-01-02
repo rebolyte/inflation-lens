@@ -1,7 +1,7 @@
 import { it, beforeEach, afterEach, describe } from "node:test";
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
-import { validateYear, detectFromMetaTags, detectFromJsonLd, detectFromUrl, detectPageYear } from "../../content/date-detector.js";
+import { validateYear, detectFromMetaTags, detectFromJsonLd, detectFromUrl, detectPageYear } from "./date-detector.js";
 
 let dom;
 let originalWindow;

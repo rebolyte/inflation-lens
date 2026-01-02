@@ -65,6 +65,15 @@ document.addEventListener('alpine:init', () => {
       this.enabled = storage.enabled !== false;
       this.swapInPlace = storage.swapInPlace === true;
 
+      // Initialize storage with defaults if not already set
+      // (replaces functionality previously in background script)
+      if (storage.enabled === undefined) {
+        await chrome.storage.local.set({ enabled: true });
+      }
+      if (storage.swapInPlace === undefined) {
+        await chrome.storage.local.set({ swapInPlace: false });
+      }
+
       const tab = await this.getTargetTab();
 
       if (tab?.id) {

@@ -1,7 +1,7 @@
 import { it, beforeEach, afterEach, describe } from "node:test";
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
-import { shouldSkipNode, replacePricesInNode, findAndReplacePrices } from "../../content/price-replacer.js";
+import { shouldSkipNode, replacePricesInNode, findAndReplacePrices } from "./price-replacer.js";
 
 // Set up mocks for real calculator before import
 global.chrome = {
@@ -28,7 +28,7 @@ global.fetch = async (url) => {
 };
 
 // Import real calculator for integration tests
-import { loadCPIData, calculateInflation, formatPrice, parsePrice, getAdjustedYear } from "../../lib/inflation-calculator.js";
+import { loadCPIData, calculateInflation, formatPrice, parsePrice, getAdjustedYear } from "../lib/inflation-calculator.js";
 
 let dom;
 let originalDocument;
