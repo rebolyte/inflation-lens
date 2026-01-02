@@ -33,7 +33,7 @@ function calculateVersion() {
   const currentVersion = pkg.version;
   const now = new Date();
   const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const month = String(now.getMonth() + 1).padStart(2, '0');
   const prefix = `${year}.${month}`;
 
   if (currentVersion.startsWith(prefix + '.')) {
@@ -127,11 +127,11 @@ function gitCommitAndTag(version) {
     // Tag doesn't exist, good
   }
 
-//   run('git add package.json CHANGELOG.md');
-//   run(`git commit -m "chore: bump version to ${version}"`);
-//   run('git push origin main');
-//   run(`git tag ${tag} -m ""`);
-//   run(`git push origin ${tag}`);
+  run('git add package.json CHANGELOG.md');
+  run(`git commit -m "chore: bump version to ${version}"`);
+  run('git push origin main');
+  run(`git tag ${tag} -m ""`);
+  run(`git push origin ${tag}`);
   console.log(`Created and pushed tag ${tag}`);
 }
 
@@ -142,7 +142,7 @@ function createGitHubRelease(version, zipPath) {
   fs.writeFileSync(notesFile, notes);
 
   try {
-    // run(`gh release create ${tag} "${zipPath}" --title "Release ${tag}" --notes-file "${notesFile}"`);
+    run(`gh release create ${tag} "${zipPath}" --title "Release ${tag}" --notes-file "${notesFile}"`);
     console.log(`Created GitHub release ${tag}`);
   } finally {
     if (fs.existsSync(notesFile)) fs.unlinkSync(notesFile);
