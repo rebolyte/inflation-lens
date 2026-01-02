@@ -4,38 +4,56 @@ import { ContentPage } from '../page-objects/content.page.js';
 
 test.describe('Popup functionality', () => {
   test('should load popup and display initial state', async ({ context, extensionId }) => {
+    const contentPageHandle = await context.newPage();
+    const contentPage = new ContentPage(contentPageHandle);
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(['$100'])));
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+
     const page = await context.newPage();
     const popupPage = new PopupPage(page, extensionId);
 
+    await contentPage.bringToFront();
     await popupPage.open();
     await popupPage.verifyLoaded();
+    await popupPage.waitForStats();
 
-    // Verify initial state
     const isEnabled = await popupPage.isEnabled();
-    expect(isEnabled).toBe(true); // Should be enabled by default
+    expect(isEnabled).toBe(true);
 
+    await contentPageHandle.close();
     await page.close();
   });
 
   test('should toggle enabled state', async ({ context, extensionId }) => {
+    const contentPageHandle = await context.newPage();
+    const contentPage = new ContentPage(contentPageHandle);
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(['$100'])));
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+
     const page = await context.newPage();
     const popupPage = new PopupPage(page, extensionId);
 
+    await contentPage.bringToFront();
     await popupPage.open();
+    await popupPage.waitForStats();
 
-    // Get initial state
     const initialState = await popupPage.isEnabled();
 
-    // Toggle
     await popupPage.toggleEnabled();
     const newState = await popupPage.isEnabled();
     expect(newState).toBe(!initialState);
 
-    // Toggle back
     await popupPage.toggleEnabled();
     const finalState = await popupPage.isEnabled();
     expect(finalState).toBe(initialState);
 
+    await contentPageHandle.close();
     await page.close();
   });
 
@@ -83,10 +101,20 @@ test.describe('Popup functionality', () => {
   });
 
   test('stats section hidden when disabled', async ({ context, extensionId }) => {
+    const contentPageHandle = await context.newPage();
+    const contentPage = new ContentPage(contentPageHandle);
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(['$100'])));
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+
     const page = await context.newPage();
     const popupPage = new PopupPage(page, extensionId);
 
+    await contentPage.bringToFront();
     await popupPage.open();
+    await popupPage.waitForStats();
 
     const enableToggle = page.getByTestId('enable-toggle');
     await expect(enableToggle).toBeVisible();
@@ -102,6 +130,7 @@ test.describe('Popup functionality', () => {
     const swapToggleVisible = await popupPage.isSwapToggleVisible();
     expect(swapToggleVisible).toBe(false);
 
+    await contentPageHandle.close();
     await page.close();
   });
 
@@ -145,6 +174,34 @@ test.describe('Popup functionality', () => {
     expect(swapToggleVisible).toBe(true);
 
     await contentPageHandle.close();
+    await page.close();
+  });
+
+  test('shows unavailable message when content script not active', async ({ context, extensionId }) => {
+    // Open popup directly without a content page (simulates chrome:// pages or other restricted pages)
+    const page = await context.newPage();
+    const popupPage = new PopupPage(page, extensionId);
+
+    await popupPage.open();
+    await popupPage.verifyLoaded();
+    await page.waitForTimeout(500); // Wait for init to complete
+
+    // Verify unavailable message is shown
+    const isUnavailableVisible = await popupPage.isUnavailableMessageVisible();
+    expect(isUnavailableVisible).toBe(true);
+
+    const unavailableMessage = await popupPage.getUnavailableMessage();
+    expect(unavailableMessage).toContain('Extension not available on this page');
+    expect(unavailableMessage).toContain('http://');
+
+    // Verify stats section is hidden
+    const statsVisible = await popupPage.isStatsSectionVisible();
+    expect(statsVisible).toBe(false);
+
+    // Verify year input is hidden
+    const yearInputVisible = await popupPage.isYearInputVisible();
+    expect(yearInputVisible).toBe(false);
+
     await page.close();
   });
 });

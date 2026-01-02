@@ -6,7 +6,17 @@
  * @property {(() => number | null) | undefined} [getAdjustedYear]
  */
 
-const PRICE_REGEX = /\$(\d+(?:\.\d{1,2})?[KkMmBb]|\d{4,}(?:\.\d{2})?|\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*(?:USD|usd))?/g;
+/**
+ * Regular expression to match price patterns in text.
+ * Matches:
+ * - Prices with K/M/B/T suffixes: $5K, $2.5M, $1B, $1.5T
+ * - Large numbers (4+ digits): $5000, $1234.56
+ * - Comma-separated numbers: $1,234.56
+ * - Optional USD suffix: $100 USD
+ *
+ * Examples: $100, $1,234.56, $5K, $2.5M, $1B, $1.5T, $100 USD
+ */
+const PRICE_REGEX = /\$(\d+(?:\.\d{1,2})?[KkMmBbTt]|\d{4,}(?:\.\d{2})?|\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*(?:USD|usd))?/g;
 
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'CODE', 'PRE', 'NOSCRIPT', 'TEXTAREA']);
 
@@ -14,8 +24,15 @@ const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'CODE', 'PRE', 'NOSCRIPT', 'TEXTAR
 const processedNodes = new WeakSet();
 
 /**
- * @param {Node} node
- * @returns {boolean}
+ * Determines whether a text node should be skipped during price replacement.
+ * Skips nodes that are:
+ * - Inside code blocks (SCRIPT, STYLE, CODE, PRE, NOSCRIPT, TEXTAREA)
+ * - Inside elements with data-no-inflation attribute
+ * - Already processed (inflation-adjusted-price class)
+ * - Inside tooltip containers
+ *
+ * @param {Node} node - The text node to check
+ * @returns {boolean} True if the node should be skipped, false otherwise
  */
 export function shouldSkipNode(node) {
   if (!node || !node.parentElement) return true;
@@ -130,6 +147,7 @@ export function replacePricesInNode(textNode, year, calculator, swapInPlace = fa
 export function findAndReplacePrices(rootElement, year, calculator, swapInPlace = false) {
   if (!rootElement || !year || !calculator) return 0;
 
+  const MAX_NODES = 250000;
   const walker = document.createTreeWalker(
     rootElement,
     NodeFilter.SHOW_TEXT,
@@ -144,8 +162,15 @@ export function findAndReplacePrices(rootElement, year, calculator, swapInPlace 
 
   const nodesToProcess = [];
   let node;
-  while ((node = walker.nextNode())) {
+  let count = 0;
+
+  while ((node = walker.nextNode()) && count < MAX_NODES) {
     nodesToProcess.push(node);
+    count++;
+  }
+
+  if (count >= MAX_NODES) {
+    console.warn('[Inflation Lens] Hit maximum node limit of', MAX_NODES, '- some prices may not be adjusted');
   }
 
   let totalReplacements = 0;

@@ -106,6 +106,14 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 1);
     });
 
+    it("matches prices with T suffix", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "National debt is $1.5T";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 1);
+    });
+
     it("matches prices with USD suffix", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Price: $100 USD";

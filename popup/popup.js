@@ -16,6 +16,8 @@ document.addEventListener('alpine:init', () => {
     overrideYear: null,
     enabled: true,
     swapInPlace: false,
+    yearError: '',
+    contentScriptAvailable: true,
 
     /**
      * Get the target tab to communicate with.
@@ -68,19 +70,26 @@ document.addEventListener('alpine:init', () => {
       if (tab?.id) {
         chrome.tabs.sendMessage(tab.id, { action: 'getStats' }).then((response) => {
           if (response) {
+            this.contentScriptAvailable = true;
             this.priceCount = response.priceCount || 0;
             this.detectedYear = response.detectedYear;
-            this.overrideYear = response.detectedYear !== null && response.detectedYear !== undefined 
-              ? (response.currentYear || response.detectedYear) 
+            this.overrideYear = response.detectedYear !== null && response.detectedYear !== undefined
+              ? (response.currentYear || response.detectedYear)
               : null;
             this.enabled = response.enabled !== false;
             this.swapInPlace = response.swapInPlace === true;
           }
-        }).catch((e) => console.log('Content script unavailable:', e.message));
+        }).catch((e) => {
+          console.log('Content script unavailable:', e.message);
+          this.contentScriptAvailable = false;
+        });
+      } else {
+        this.contentScriptAvailable = false;
       }
 
       chrome.runtime.onMessage.addListener((message) => {
         if (message.action === 'updateStats') {
+          this.contentScriptAvailable = true;
           this.priceCount = message.data.priceCount || 0;
           this.detectedYear = message.data.detectedYear;
           this.overrideYear = message.data.detectedYear !== null && message.data.detectedYear !== undefined
@@ -124,10 +133,34 @@ document.addEventListener('alpine:init', () => {
     },
 
     /**
+     * Validates and updates the year override for inflation calculations.
+     * Year must be a valid number between 1913 and 2023 (CPI data range).
      * @returns {Promise<void>}
      */
     async updateYear() {
-      const year = this.overrideYear ? parseInt(this.overrideYear, 10) : null;
+      let year = null;
+
+      if (this.overrideYear) {
+        const parsed = parseInt(this.overrideYear, 10);
+
+        // Validate that parsing succeeded and year is in valid range
+        if (!isNaN(parsed) && parsed >= 1913 && parsed <= 2023) {
+          year = parsed;
+          this.yearError = ''; // Clear error on valid input
+        } else {
+          console.warn('[Inflation Lens] Invalid year input:', this.overrideYear);
+          // Show error message to user
+          this.yearError = 'Year must be between 1913-2023';
+          // Reset to detected year after showing error
+          setTimeout(() => {
+            this.overrideYear = this.detectedYear;
+            this.yearError = '';
+          }, 2000);
+          return;
+        }
+      } else {
+        this.yearError = ''; // Clear error when input is empty
+      }
 
       const tab = await this.getTargetTab();
       if (tab?.id) {

@@ -90,7 +90,6 @@ export class PopupPage extends BasePage {
    */
   async verifyLoaded() {
     await this.page.getByRole('heading', { name: 'Inflation Lens' }).waitFor();
-    await this.page.getByTestId('price-count').waitFor();
   }
 
   /**
@@ -183,5 +182,55 @@ export class PopupPage extends BasePage {
     if (currentState !== swapInPlace) {
       await checkbox.click();
     }
+  }
+
+  /**
+   * Check if the year input has error styling
+   * @returns {Promise<boolean>}
+   */
+  async hasYearInputError() {
+    const input = this.getYearInput();
+    const classes = await input.getAttribute('class');
+    return classes?.includes('error') ?? false;
+  }
+
+  /**
+   * Get the error message text
+   * @returns {Promise<string>}
+   */
+  async getErrorMessage() {
+    const errorMessage = this.page.locator('.error-message');
+    const isVisible = await errorMessage.isVisible();
+    if (!isVisible) return '';
+    return await errorMessage.textContent() || '';
+  }
+
+  /**
+   * Check if error message is visible
+   * @returns {Promise<boolean>}
+   */
+  async isErrorMessageVisible() {
+    const errorMessage = this.page.locator('.error-message');
+    return await errorMessage.isVisible();
+  }
+
+  /**
+   * Check if the unavailable message is visible
+   * @returns {Promise<boolean>}
+   */
+  async isUnavailableMessageVisible() {
+    const unavailableMessage = this.page.getByTestId('unavailable-message');
+    return await unavailableMessage.isVisible();
+  }
+
+  /**
+   * Get the unavailable message text
+   * @returns {Promise<string>}
+   */
+  async getUnavailableMessage() {
+    const unavailableMessage = this.page.getByTestId('unavailable-message');
+    const isVisible = await unavailableMessage.isVisible();
+    if (!isVisible) return '';
+    return await unavailableMessage.textContent() || '';
   }
 }
