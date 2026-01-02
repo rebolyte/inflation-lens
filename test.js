@@ -3,7 +3,10 @@ import { existsSync, statSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { sync as globSync } from "glob";
 
-const PATTERN = "./src/**/*.test.js";
+const PATTERNS = [
+  "./content/**/*.test.js",
+  "./lib/**/*.test.js"
+];
 
 const { values, positionals, tokens } = parseArgs({
   options: {
@@ -25,15 +28,20 @@ const passthroughArgs = tokens
 let matches = [];
 if (positionals.length > 0) {
   for (const pattern of positionals) {
-    const dirPath = `./src/${pattern}`;
-    if (existsSync(dirPath) && statSync(dirPath).isDirectory()) {
-      matches.push(...globSync(`${dirPath}/**/*.test.js`));
-    } else {
-      matches.push(...globSync(`./src/**/*${pattern}*.test.js`));
+    // Search for tests in content and lib directories
+    const searchPatterns = [
+      `./content/**/*${pattern}*.test.js`,
+      `./lib/**/*${pattern}*.test.js`
+    ];
+    for (const searchPattern of searchPatterns) {
+      matches.push(...globSync(searchPattern));
     }
   }
 } else {
-  matches = globSync(PATTERN);
+  // Collect all test files from all patterns
+  for (const pattern of PATTERNS) {
+    matches.push(...globSync(pattern));
+  }
 }
 
 if (matches.length === 0) {
