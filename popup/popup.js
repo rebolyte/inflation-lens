@@ -134,7 +134,7 @@ document.addEventListener('alpine:init', () => {
 
     /**
      * Validates and updates the year override for inflation calculations.
-     * Year must be a valid number between 1913 and 2025 (CPI data range).
+     * Year must be a valid number between 1913 and 2023 (CPI data range).
      * @returns {Promise<void>}
      */
     async updateYear() {
@@ -144,13 +144,13 @@ document.addEventListener('alpine:init', () => {
         const parsed = parseInt(this.overrideYear, 10);
 
         // Validate that parsing succeeded and year is in valid range
-        if (!isNaN(parsed) && parsed >= 1913 && parsed <= 2025) {
+        if (!isNaN(parsed) && parsed >= 1913 && parsed <= 2023) {
           year = parsed;
           this.yearError = ''; // Clear error on valid input
         } else {
           console.warn('[Inflation Lens] Invalid year input:', this.overrideYear);
           // Show error message to user
-          this.yearError = 'Year must be between 1913-2025';
+          this.yearError = 'Year must be between 1913-2023';
           // Reset to detected year after showing error
           setTimeout(() => {
             this.overrideYear = this.detectedYear;

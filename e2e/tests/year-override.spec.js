@@ -462,9 +462,9 @@ test.describe('Year override functionality', () => {
     let isErrorVisible = await popupPage.isErrorMessageVisible();
     expect(isErrorVisible).toBe(false);
 
-    // Test year too high (2026 > 2025)
+    // Test year too high (2025 > 2023)
     const yearInput = popupPage.getYearInput();
-    await yearInput.fill('2026');
+    await yearInput.fill('2025');
     await popupPageHandle.waitForTimeout(100);
 
     // Check error message appears
@@ -472,7 +472,7 @@ test.describe('Year override functionality', () => {
     expect(isErrorVisible).toBe(true);
 
     const errorMessage = await popupPage.getErrorMessage();
-    expect(errorMessage).toBe('Year must be between 1913-2025');
+    expect(errorMessage).toBe('Year must be between 1913-2023');
 
     // Check input has error styling
     hasError = await popupPage.hasYearInputError();
