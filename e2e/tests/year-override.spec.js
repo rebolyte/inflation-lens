@@ -10,7 +10,7 @@ test.describe('Year override functionality', () => {
     const url = new URL('/fixture.html', 'http://localhost:3000');
     url.searchParams.set('year', '2010');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
-    
+
     await contentPage.goto(url.toString());
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(prices.length);
@@ -37,7 +37,7 @@ test.describe('Year override functionality', () => {
     const prices = ['This item costs $100.00'];
     const url = new URL('/fixture.html', 'http://localhost:3000');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
-    
+
     await contentPage.goto(url.toString());
     await contentPage.waitForContentScript();
 
@@ -103,7 +103,7 @@ test.describe('Year override functionality', () => {
     const url = new URL('/fixture.html', 'http://localhost:3000');
     url.searchParams.set('year', '2010');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
-    
+
     await contentPage.goto(url.toString());
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(prices.length);
@@ -141,7 +141,7 @@ test.describe('Year override functionality', () => {
     const url = new URL('/fixture.html', 'http://localhost:3000');
     url.searchParams.set('year', '2010');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
-    
+
     await contentPage.goto(url.toString());
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(prices.length);
@@ -158,21 +158,25 @@ test.describe('Year override functionality', () => {
     await popupPage.verifyLoaded();
     await popupPage.waitForStats();
 
+    // Enter invalid year (2030 is beyond CPI data range)
     const yearInput = popupPage.getYearInput();
-    const maxValue = await yearInput.getAttribute('max');
-    expect(maxValue).toBe('2023');
-
-    await yearInput.fill('2025');
+    await yearInput.fill('2030');
     await yearInput.blur();
     await popupPageHandle.waitForTimeout(300);
-    await contentPage.bringToFront();
-    await contentPageHandle.waitForTimeout(300);
 
+    // Error should be shown
+    const hasError = await popupPage.hasYearInputError();
+    expect(hasError).toBe(true);
+
+    // Content page should still show original year (invalid year rejected)
+    await contentPage.bringToFront();
+    await contentPageHandle.waitForTimeout(500);
+
+    // Prices should still be present with original detected year
     const adjustedCount = await contentPage.getAdjustedPriceCount();
-    if (adjustedCount > 0) {
-      const year = await contentPage.getOriginalYear(0);
-      expect(year).toBe('2010');
-    }
+    expect(adjustedCount).toBe(1);
+    const year = await contentPage.getOriginalYear(0);
+    expect(year).toBe('2010');
 
     await contentPageHandle.close();
     await popupPageHandle.close();
@@ -257,7 +261,7 @@ test.describe('Year override functionality', () => {
     const url = new URL('/fixture.html', 'http://localhost:3000');
     url.searchParams.set('year', '2010');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
-    
+
     await contentPage.goto(url.toString());
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(prices.length);
@@ -301,7 +305,7 @@ test.describe('Year override functionality', () => {
     const url = new URL('/fixture.html', 'http://localhost:3000');
     url.searchParams.set('year', '2010');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
-    
+
     await contentPage.goto(url.toString());
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(prices.length);

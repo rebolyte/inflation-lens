@@ -185,40 +185,36 @@ test.describe('Price replacement functionality', () => {
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(prices.length);
 
-    const originalPrice0 = await contentPage.getOriginalPrice(0);
-    const adjustedPrice0 = await contentPage.getAdjustedPrice(0);
-    const originalPrice1 = await contentPage.getOriginalPrice(1);
-    const adjustedPrice1 = await contentPage.getAdjustedPrice(1);
+    // Verify adjusted prices are correct: $100 * (304.7/218.1) = $139.71, $50 = $69.85
+    expect(await contentPage.getAdjustedPrice(0)).toBe('$139.71');
+    expect(await contentPage.getAdjustedPrice(1)).toBe('$69.85');
 
     const popupPageHandle = await context.newPage();
     const popupPage = new PopupPage(popupPageHandle, extensionId);
     await popupPage.open();
     await popupPage.waitForStats();
 
+    // Initially swap is off - displayed text shows original prices
     expect(await popupPage.isSwapInPlace()).toBe(false);
-    const displayedText0Before = await contentPage.getDisplayedPriceText(0);
-    const displayedText1Before = await contentPage.getDisplayedPriceText(1);
-    expect(displayedText0Before).toBe(originalPrice0);
-    expect(displayedText1Before).toBe(originalPrice1);
+    expect(await contentPage.getDisplayedPriceText(0)).toBe('$100.00');
+    expect(await contentPage.getDisplayedPriceText(1)).toBe('$50.00');
 
+    // Enable swap - displayed text should show adjusted prices
     await popupPage.setSwapInPlace(true);
     expect(await popupPage.isSwapInPlace()).toBe(true);
     await contentPage.bringToFront();
 
-    const displayedText0After = await contentPage.getDisplayedPriceText(0);
-    const displayedText1After = await contentPage.getDisplayedPriceText(1);
-    expect(displayedText0After).toBe(adjustedPrice0);
-    expect(displayedText1After).toBe(adjustedPrice1);
+    expect(await contentPage.getDisplayedPriceText(0)).toBe('$139.71');
+    expect(await contentPage.getDisplayedPriceText(1)).toBe('$69.85');
 
+    // Disable swap - displayed text should revert to original
     await popupPage.bringToFront();
     await popupPage.setSwapInPlace(false);
     expect(await popupPage.isSwapInPlace()).toBe(false);
     await contentPage.bringToFront();
 
-    const displayedText0Final = await contentPage.getDisplayedPriceText(0);
-    const displayedText1Final = await contentPage.getDisplayedPriceText(1);
-    expect(displayedText0Final).toBe(originalPrice0);
-    expect(displayedText1Final).toBe(originalPrice1);
+    expect(await contentPage.getDisplayedPriceText(0)).toBe('$100.00');
+    expect(await contentPage.getDisplayedPriceText(1)).toBe('$50.00');
 
     await contentPageHandle.close();
     await popupPageHandle.close();
@@ -337,9 +333,18 @@ test.describe('Price replacement functionality', () => {
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(5);
 
-    // Should detect: $100, $1,000, $10K, $5M, $1B
+    // Should detect: $100, $1,000, $10K, $5M, $1B (5 prices total)
     const count = await contentPage.getAdjustedPriceCount();
     expect(count).toBe(5);
+
+    // Verify actual adjusted values (2010→2023 ratio: 304.7/218.1 ≈ 1.397)
+    // $100 → $139.71, $1,000 → $1,397, $10K → $13,971
+    // $5M → $6.99M, $1B → $1.4B
+    expect(await contentPage.getAdjustedPrice(0)).toBe('$139.71');
+    expect(await contentPage.getAdjustedPrice(1)).toBe('$1,397');
+    expect(await contentPage.getAdjustedPrice(2)).toBe('$13,971');
+    expect(await contentPage.getAdjustedPrice(3)).toBe('$6.99M');
+    expect(await contentPage.getAdjustedPrice(4)).toBe('$1.4B');
 
     await page.close();
   });
