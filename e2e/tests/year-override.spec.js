@@ -63,16 +63,16 @@ test.describe('Year override functionality', () => {
     const url = new URL('/fixture.html', 'http://localhost:3000');
     url.searchParams.set('year', '2010');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
-    
+
     await contentPage.goto(url.toString());
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(prices.length);
 
-    const originalYear = await contentPage.getOriginalYear(0);
-    expect(originalYear).toBe('2010');
-
-    const adjustedPrice2010_1 = await contentPage.getAdjustedPrice(0);
-    const adjustedPrice2010_2 = await contentPage.getAdjustedPrice(1);
+    // Initial: 2010 prices adjusted to 2023
+    // $100 * (304.7/218.1) = $139.71, $50 * (304.7/218.1) = $69.85
+    expect(await contentPage.getOriginalYear(0)).toBe('2010');
+    expect(await contentPage.getAdjustedPrice(0)).toBe('$139.71');
+    expect(await contentPage.getAdjustedPrice(1)).toBe('$69.85');
 
     const popupPageHandle = await context.newPage();
     const popupPage = new PopupPage(popupPageHandle, extensionId);
@@ -83,23 +83,14 @@ test.describe('Year override functionality', () => {
     await popupPage.verifyLoaded();
     await popupPage.waitForStats();
 
+    // Change to 2015: $100 * (304.7/237) = $128.57, $50 * (304.7/237) = $64.28
     await popupPage.setYearInput(2015);
     await contentPage.bringToFront();
     await contentPage.waitForPriceProcessing(prices.length);
 
-    const newYear = await contentPage.getOriginalYear(0);
-    expect(newYear).toBe('2015');
-
-    const adjustedPrice2015_1 = await contentPage.getAdjustedPrice(0);
-    const adjustedPrice2015_2 = await contentPage.getAdjustedPrice(1);
-    
-    const price2010_1 = parseFloat(adjustedPrice2010_1.replace(/[$,]/g, ''));
-    const price2010_2 = parseFloat(adjustedPrice2010_2.replace(/[$,]/g, ''));
-    const price2015_1 = parseFloat(adjustedPrice2015_1.replace(/[$,]/g, ''));
-    const price2015_2 = parseFloat(adjustedPrice2015_2.replace(/[$,]/g, ''));
-    
-    expect(price2010_1).toBeGreaterThan(price2015_1);
-    expect(price2010_2).toBeGreaterThan(price2015_2);
+    expect(await contentPage.getOriginalYear(0)).toBe('2015');
+    expect(await contentPage.getAdjustedPrice(0)).toBe('$128.57');
+    expect(await contentPage.getAdjustedPrice(1)).toBe('$64.28');
 
     await contentPageHandle.close();
     await popupPageHandle.close();
@@ -359,7 +350,7 @@ test.describe('Year override functionality', () => {
     const url = new URL('/fixture.html', 'http://localhost:3000');
     url.searchParams.set('year', '2010');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
-    
+
     await contentPage.goto(url.toString());
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(prices.length);
@@ -381,12 +372,14 @@ test.describe('Year override functionality', () => {
     const year = await contentPage.getOriginalYear(0);
     expect(year).toBe('2015');
 
+    // $100 in 2015 → 2023: 100 * (304.7/237) = $128.57
     const adjustedPrice = await contentPage.getAdjustedPrice(0);
-    expect(adjustedPrice).toBeTruthy();
+    expect(adjustedPrice).toBe('$128.57');
 
+    // With swap toggle on, the displayed text should be the adjusted price
     const priceElement = contentPage.getAdjustedPriceAt(0);
     const displayedText = await priceElement.textContent();
-    expect(displayedText).toBe(adjustedPrice);
+    expect(displayedText).toBe('$128.57');
 
     await contentPageHandle.close();
     await popupPageHandle.close();
@@ -399,13 +392,14 @@ test.describe('Year override functionality', () => {
     const url = new URL('/fixture.html', 'http://localhost:3000');
     url.searchParams.set('year', '2010');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
-    
+
     await contentPage.goto(url.toString());
     await contentPage.waitForContentScript();
     await contentPage.waitForPriceProcessing(prices.length);
 
-    const originalYear = await contentPage.getOriginalYear(0);
-    expect(originalYear).toBe('2010');
+    // Initial: $100 in 2010 → 2023 = $139.71
+    expect(await contentPage.getOriginalYear(0)).toBe('2010');
+    expect(await contentPage.getAdjustedPrice(0)).toBe('$139.71');
 
     const popupPageHandle = await context.newPage();
     const popupPage = new PopupPage(popupPageHandle, extensionId);
@@ -416,27 +410,22 @@ test.describe('Year override functionality', () => {
     await popupPage.verifyLoaded();
     await popupPage.waitForStats();
 
+    // Change to 2015: $100 in 2015 → 2023 = $128.57
     await popupPage.setYearInput(2015);
     await contentPage.bringToFront();
     await contentPage.waitForPriceProcessing(prices.length);
 
-    const newYear = await contentPage.getOriginalYear(0);
-    expect(newYear).toBe('2015');
+    expect(await contentPage.getOriginalYear(0)).toBe('2015');
+    expect(await contentPage.getAdjustedPrice(0)).toBe('$128.57');
 
-    const adjustedPrice1 = await contentPage.getAdjustedPrice(0);
-    expect(adjustedPrice1).toBeTruthy();
-
+    // Change to 2020: $100 in 2020 → 2023 = $117.74
     await popupPage.bringToFront();
     await popupPage.setYearInput(2020);
     await contentPage.bringToFront();
     await contentPage.waitForPriceProcessing(prices.length);
 
-    const finalYear = await contentPage.getOriginalYear(0);
-    expect(finalYear).toBe('2020');
-
-    const adjustedPrice2 = await contentPage.getAdjustedPrice(0);
-    expect(adjustedPrice2).toBeTruthy();
-    expect(adjustedPrice2).not.toBe(adjustedPrice1);
+    expect(await contentPage.getOriginalYear(0)).toBe('2020');
+    expect(await contentPage.getAdjustedPrice(0)).toBe('$117.74');
 
     await contentPageHandle.close();
     await popupPageHandle.close();
