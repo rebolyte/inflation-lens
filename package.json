@@ -3,7 +3,7 @@
   "version": "2026.01.2",
   "main": "index.js",
   "type": "module",
-  "repository": "git@github.com:rebolyte/legendary-octo-bassoon.git",
+  "repository": "git@github.com:rebolyte/inflation-lens.git",
   "author": "James Irwin <rebolyte@gmail.com>",
   "license": "MIT",
   "scripts": {
