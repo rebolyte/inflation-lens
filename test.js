@@ -4,8 +4,8 @@ import { parseArgs } from "node:util";
 import { sync as globSync } from "glob";
 
 const PATTERNS = [
-  "./content/**/*.test.js",
-  "./lib/**/*.test.js"
+  "./src/content/**/*.test.js",
+  "./src/lib/**/*.test.js"
 ];
 
 const { values, positionals, tokens } = parseArgs({
@@ -30,8 +30,8 @@ if (positionals.length > 0) {
   for (const pattern of positionals) {
     // Search for tests in content and lib directories
     const searchPatterns = [
-      `./content/**/*${pattern}*.test.js`,
-      `./lib/**/*${pattern}*.test.js`
+      `./src/content/**/*${pattern}*.test.js`,
+      `./src/lib/**/*${pattern}*.test.js`
     ];
     for (const searchPattern of searchPatterns) {
       matches.push(...globSync(searchPattern));

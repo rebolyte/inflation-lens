@@ -18,7 +18,7 @@ export class PopupPage extends BasePage {
    * @returns {Promise<void>}
    */
   async open() {
-    await this.goto(`chrome-extension://${this.extensionId}/popup/popup.html?testing=true`);
+    await this.goto(`chrome-extension://${this.extensionId}/src/popup/popup.html?testing=true`);
     await this.verifyLoaded();
   }
 

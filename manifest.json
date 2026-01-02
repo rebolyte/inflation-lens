@@ -6,7 +6,7 @@
   "permissions": ["activeTab", "storage", "tabs"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_popup": "popup/popup.html",
+    "default_popup": "src/popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -21,8 +21,8 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content/loader.js"],
-      "css": ["vendor/easy-tooltips-1.2.9.css", "content/inflation.css"],
+      "js": ["src/content/loader.js"],
+      "css": ["vendor/easy-tooltips-1.2.9.css", "src/content/inflation.css"],
       "run_at": "document_idle"
     }
   ],
@@ -30,10 +30,10 @@
     {
       "resources": [
         "data/cpi-data.json",
-        "lib/inflation-calculator.js",
-        "content/date-detector.js",
-        "content/price-replacer.js",
-        "content/inflation-detector.js",
+        "src/lib/inflation-calculator.js",
+        "src/content/date-detector.js",
+        "src/content/price-replacer.js",
+        "src/content/inflation-detector.js",
         "vendor/easy-tooltips-1.2.9.min.js"
       ],
       "matches": ["<all_urls>"]
