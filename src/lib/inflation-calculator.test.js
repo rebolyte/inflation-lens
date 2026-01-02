@@ -60,6 +60,30 @@ describe("inflation-calculator", () => {
       assert.strictEqual(parsePrice("$1.5T"), 1500000000000);
     });
 
+    it("parses amounts with Thousand word suffix", () => {
+      assert.strictEqual(parsePrice("$5 Thousand"), 5000);
+      assert.strictEqual(parsePrice("$10.5 thousand"), 10500);
+      assert.strictEqual(parsePrice("$100 THOUSAND"), 100000);
+    });
+
+    it("parses amounts with Million word suffix", () => {
+      assert.strictEqual(parsePrice("$2 Million"), 2000000);
+      assert.strictEqual(parsePrice("$1.5 million"), 1500000);
+      assert.strictEqual(parsePrice("$46 MILLION"), 46000000);
+    });
+
+    it("parses amounts with Billion word suffix", () => {
+      assert.strictEqual(parsePrice("$1 Billion"), 1000000000);
+      assert.strictEqual(parsePrice("$2.5 billion"), 2500000000);
+      assert.strictEqual(parsePrice("$46 BILLION"), 46000000000);
+    });
+
+    it("parses amounts with Trillion word suffix", () => {
+      assert.strictEqual(parsePrice("$1 Trillion"), 1000000000000);
+      assert.strictEqual(parsePrice("$2.5 trillion"), 2500000000000);
+      assert.strictEqual(parsePrice("$31 TRILLION"), 31000000000000);
+    });
+
     it("handles edge case amounts", () => {
       assert.strictEqual(parsePrice("$0.01"), 0.01);
       assert.strictEqual(parsePrice("$0.99"), 0.99);

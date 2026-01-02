@@ -348,4 +348,59 @@ test.describe('Price replacement functionality', () => {
 
     await page.close();
   });
+
+  test('should handle word suffix prices like $46 Billion', async ({ context }) => {
+    const page = await context.newPage();
+    const contentPage = new ContentPage(page);
+
+    const prices = [
+      'The acquisition was $46 Billion',
+      'Revenue: $5 Million, Market cap: $2 Trillion',
+    ];
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+    await contentPage.waitForPriceProcessing(3);
+
+    const count = await contentPage.getAdjustedPriceCount();
+    expect(count).toBe(3);
+
+    // 2010→2023 ratio: 304.7/218.1 ≈ 1.397
+    // $46B → $64.27B, $5M → $6.99M, $2T → $2.79T
+    const price0 = await contentPage.getAdjustedPrice(0);
+    const price1 = await contentPage.getAdjustedPrice(1);
+    const price2 = await contentPage.getAdjustedPrice(2);
+
+    expect(price0).toBe('$64.27B');
+    expect(price1).toBe('$6.99M');
+    expect(price2).toBe('$2.79T');
+
+    await page.close();
+  });
+
+  test('should not match word suffix when separated from price', async ({ context }) => {
+    const page = await context.newPage();
+    const contentPage = new ContentPage(page);
+
+    const prices = ['$50 or maybe a billion dollars'];
+    const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', '2010');
+    url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
+
+    await contentPage.goto(url.toString());
+    await contentPage.waitForContentScript();
+    await contentPage.waitForPriceProcessing(1);
+
+    const count = await contentPage.getAdjustedPriceCount();
+    expect(count).toBe(1);
+
+    // Only $50 should match, not "billion"
+    const price = await contentPage.getAdjustedPrice(0);
+    expect(price).toBe('$69.85');
+
+    await page.close();
+  });
 });

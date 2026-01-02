@@ -114,6 +114,60 @@ describe("price-replacer", () => {
       assert.strictEqual(count, 1);
     });
 
+    it("matches prices with Thousand word suffix", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "The budget was $50 Thousand";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 1);
+      const span = div.querySelector(".inflation-adjusted-price");
+      assert.strictEqual(span.getAttribute("data-original-price"), "$50 Thousand");
+    });
+
+    it("matches prices with Million word suffix", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "Revenue was $5 Million";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 1);
+      const span = div.querySelector(".inflation-adjusted-price");
+      assert.strictEqual(span.getAttribute("data-original-price"), "$5 Million");
+    });
+
+    it("matches prices with Billion word suffix", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "The deal was worth $46 Billion";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 1);
+      const span = div.querySelector(".inflation-adjusted-price");
+      assert.strictEqual(span.getAttribute("data-original-price"), "$46 Billion");
+    });
+
+    it("matches prices with Trillion word suffix", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "National debt: $31 Trillion";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 1);
+      const span = div.querySelector(".inflation-adjusted-price");
+      assert.strictEqual(span.getAttribute("data-original-price"), "$31 Trillion");
+    });
+
+    it("matches prices with lowercase word suffixes", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "Budget: $100 thousand, Revenue: $5 million, Value: $2 billion, Debt: $1 trillion";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 4);
+      const spans = div.querySelectorAll(".inflation-adjusted-price");
+      const prices = Array.from(spans).map(s => s.getAttribute("data-original-price"));
+      assert.ok(prices.includes("$100 thousand"));
+      assert.ok(prices.includes("$5 million"));
+      assert.ok(prices.includes("$2 billion"));
+      assert.ok(prices.includes("$1 trillion"));
+    });
+
     it("matches prices with USD suffix", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Price: $100 USD";
@@ -160,6 +214,24 @@ describe("price-replacer", () => {
     it("does not match invalid patterns", () => {
       const div = dom.window.document.createElement("div");
       div.textContent = "Model: S100, Year: 2020, Code: USD123";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 0);
+    });
+
+    it("does not match word suffix when separated from price", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "$50 or maybe a billion";
+
+      const count = findAndReplacePrices(div, 2000, mockCalculator);
+      assert.strictEqual(count, 1);
+      const span = div.querySelector(".inflation-adjusted-price");
+      assert.strictEqual(span.getAttribute("data-original-price"), "$50");
+    });
+
+    it("does not match standalone word suffix", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "The company is worth billions";
 
       const count = findAndReplacePrices(div, 2000, mockCalculator);
       assert.strictEqual(count, 0);
@@ -603,6 +675,55 @@ describe("price-replacer", () => {
       const adjustedPrice = span.getAttribute("data-adjusted-price");
       assert.ok(adjustedPrice.includes("$5") && adjustedPrice.toUpperCase().includes("M"),
         `Expected ~$5.5M inflation-adjusted price, got ${adjustedPrice}`);
+    });
+
+    it("handles word suffixes with real calculator", () => {
+      const div = dom.window.document.createElement("div");
+      div.textContent = "The deal was $46 Billion in 2000";
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 1);
+
+      const span = div.querySelector(".inflation-adjusted-price");
+      const originalPrice = span.getAttribute("data-original-price");
+      assert.strictEqual(originalPrice, "$46 Billion",
+        `Expected $46 Billion, got ${originalPrice}`);
+
+      // $46B in 2000 = ~$85.48B in 2025 (46000000000 * 320.0/172.2)
+      const adjustedPrice = span.getAttribute("data-adjusted-price");
+      assert.ok(adjustedPrice.includes("$85") && adjustedPrice.toUpperCase().includes("B"),
+        `Expected ~$85B inflation-adjusted price, got ${adjustedPrice}`);
+    });
+
+    it("handles various word suffixes correctly", () => {
+      const div = dom.window.document.createElement("div");
+      div.innerHTML = `
+        <p>Revenue: $5 million, Valuation: $2 billion, Debt: $1 trillion in 2000</p>
+      `;
+      dom.window.document.body.appendChild(div);
+
+      const count = findAndReplacePrices(div, 2000, realCalculator);
+
+      assert.strictEqual(count, 3, "Should find all three word-suffix prices");
+
+      const spans = div.querySelectorAll(".inflation-adjusted-price");
+      assert.strictEqual(spans.length, 3);
+
+      const prices = Array.from(spans).map(s => s.getAttribute("data-original-price"));
+      assert.ok(prices.includes("$5 million"), `Expected $5 million, got ${prices}`);
+      assert.ok(prices.includes("$2 billion"), `Expected $2 billion, got ${prices}`);
+      assert.ok(prices.includes("$1 trillion"), `Expected $1 trillion, got ${prices}`);
+
+      // Verify calculations are on correct magnitudes
+      const adjusted = Array.from(spans).map(s => s.getAttribute("data-adjusted-price"));
+      assert.ok(adjusted.some(p => p.toUpperCase().includes("M")),
+        `Expected millions price, got ${adjusted}`);
+      assert.ok(adjusted.some(p => p.toUpperCase().includes("B")),
+        `Expected billions price, got ${adjusted}`);
+      assert.ok(adjusted.some(p => p.toUpperCase().includes("T")),
+        `Expected trillions price, got ${adjusted}`);
     });
   });
 });
