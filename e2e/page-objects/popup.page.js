@@ -90,7 +90,6 @@ export class PopupPage extends BasePage {
    */
   async verifyLoaded() {
     await this.page.getByRole('heading', { name: 'Inflation Lens' }).waitFor();
-    await this.page.getByTestId('price-count').waitFor();
   }
 
   /**

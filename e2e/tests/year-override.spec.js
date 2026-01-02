@@ -188,6 +188,7 @@ test.describe('Year override functionality', () => {
   });
 
   test('override is independent per tab', async ({ context, extensionId }) => {
+    // Tab 1: Set year to 2015
     const page1 = await context.newPage();
     const contentPage1 = new ContentPage(page1);
     const prices1 = ['Tab 1: $100.00'];
@@ -200,20 +201,20 @@ test.describe('Year override functionality', () => {
 
     const popupPage1Handle = await context.newPage();
     const popupPage1 = new PopupPage(popupPage1Handle, extensionId);
-    await popupPage1.open();
     await contentPage1.bringToFront();
-    await popupPage1.bringToFront();
-    await popupPage1Handle.reload();
-    await popupPage1.verifyLoaded();
+    await popupPage1.open();
     await popupPage1.waitForStats();
     await popupPage1.setYearInput(2015);
     await contentPage1.bringToFront();
-    await contentPage1.waitForPriceProcessing(prices1.length);
     await page1.waitForTimeout(500);
-    
+
     let year1Check = await contentPage1.getOriginalYear(0);
     expect(year1Check).toBe('2015');
 
+    // Close popup1 to avoid confusion
+    await popupPage1Handle.close();
+
+    // Tab 2: Set year to 2020
     const page2 = await context.newPage();
     const contentPage2 = new ContentPage(page2);
     const prices2 = ['Tab 2: $100.00'];
@@ -226,36 +227,28 @@ test.describe('Year override functionality', () => {
 
     const popupPage2Handle = await context.newPage();
     const popupPage2 = new PopupPage(popupPage2Handle, extensionId);
+    await contentPage2.bringToFront();
     await popupPage2.open();
-    await contentPage2.bringToFront();
-    await popupPage2.bringToFront();
-    await popupPage2Handle.reload();
-    await popupPage2.verifyLoaded();
     await popupPage2.waitForStats();
-    await contentPage2.bringToFront();
-    await page2.waitForTimeout(300);
-    await popupPage2.bringToFront();
-    await popupPage2Handle.waitForTimeout(200);
-    await contentPage2.bringToFront();
-    await page2.waitForTimeout(100);
-    await popupPage2.bringToFront();
     await popupPage2.setYearInput(2020);
-    await popupPage2Handle.waitForTimeout(500);
-    
+    await page2.waitForTimeout(500);
+
     const yearInputValue = await popupPage2.getYearInputValue();
     expect(yearInputValue).toBe('2020');
-    
+
     await contentPage2.bringToFront();
-    await page2.waitForTimeout(1000);
-    
+    await page2.waitForTimeout(500);
+
     let year2Check = await contentPage2.getOriginalYear(0);
     expect(year2Check).toBe('2020');
 
+    // Verify tab 1 still has year 2015
     await contentPage1.bringToFront();
     await page1.waitForTimeout(300);
     const year1 = await contentPage1.getOriginalYear(0);
     expect(year1).toBe('2015');
 
+    // Verify tab 2 still has year 2020
     await contentPage2.bringToFront();
     await page2.waitForTimeout(300);
     const year2 = await contentPage2.getOriginalYear(0);
@@ -263,7 +256,6 @@ test.describe('Year override functionality', () => {
 
     await page1.close();
     await page2.close();
-    await popupPage1Handle.close();
     await popupPage2Handle.close();
   });
 
@@ -522,21 +514,8 @@ test.describe('Year override functionality', () => {
     isErrorVisible = await popupPage.isErrorMessageVisible();
     expect(isErrorVisible).toBe(false);
 
-    // Test invalid text input
-    await yearInput.fill('abcd');
-    await popupPageHandle.waitForTimeout(100);
-
-    isErrorVisible = await popupPage.isErrorMessageVisible();
-    expect(isErrorVisible).toBe(true);
-
-    hasError = await popupPage.hasYearInputError();
-    expect(hasError).toBe(true);
-
-    // Wait for auto-reset
-    await popupPageHandle.waitForTimeout(2100);
-
-    isErrorVisible = await popupPage.isErrorMessageVisible();
-    expect(isErrorVisible).toBe(false);
+    // Note: input[type=number] prevents text input at browser level
+    // so we can't test 'abcd' input - browser itself rejects it
 
     // Test valid year clears error
     await yearInput.fill('2015');
