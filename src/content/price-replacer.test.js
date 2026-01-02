@@ -321,7 +321,7 @@ describe("price-replacer", () => {
       const tooltips = dom.window.document.createElement("div");
       tooltips.id = "tooltips";
       const tooltip = dom.window.document.createElement("div");
-      tooltip.className = "tooltip";
+      tooltip.className = "nfltnlns-tooltip";
       const tooltipText = dom.window.document.createElement("div");
       tooltipText.className = "tooltip-text";
       tooltipText.textContent = "$100 in 2020 = $120 today";
