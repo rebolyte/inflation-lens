@@ -1,6 +1,6 @@
 {
   "name": "inflation-lens",
-  "version": "1.0.0",
+  "version": "2026.01.1",
   "main": "index.js",
   "type": "module",
   "repository": "git@github.com:rebolyte/legendary-octo-bassoon.git",
@@ -15,7 +15,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "ts:check": "tsc --noEmit"
+    "ts:check": "tsc --noEmit",
+    "release": "yarn test && yarn test:e2e && node scripts/release.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
