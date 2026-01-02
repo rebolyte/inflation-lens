@@ -317,17 +317,26 @@ describe("price-replacer", () => {
       assert.strictEqual(shouldSkipNode(textNode), true);
     });
 
-    it("skips nodes inside tooltips container", () => {
+    it("skips nodes inside tooltips container by id", () => {
       const tooltips = dom.window.document.createElement("div");
       tooltips.id = "tooltips";
+      const inner = dom.window.document.createElement("div");
+      inner.textContent = "$100 in 2020";
+      tooltips.appendChild(inner);
+      dom.window.document.body.appendChild(tooltips);
+
+      const textNode = inner.firstChild;
+      assert.strictEqual(shouldSkipNode(textNode), true);
+    });
+
+    it("skips nodes inside tooltip elements by class", () => {
       const tooltip = dom.window.document.createElement("div");
       tooltip.className = "nfltnlns-tooltip";
       const tooltipText = dom.window.document.createElement("div");
       tooltipText.className = "tooltip-text";
       tooltipText.textContent = "$100 in 2020 = $120 today";
       tooltip.appendChild(tooltipText);
-      tooltips.appendChild(tooltip);
-      dom.window.document.body.appendChild(tooltips);
+      dom.window.document.body.appendChild(tooltip);
 
       const textNode = tooltipText.firstChild;
       assert.strictEqual(shouldSkipNode(textNode), true);

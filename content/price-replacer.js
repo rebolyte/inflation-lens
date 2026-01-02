@@ -45,6 +45,7 @@ export function shouldSkipNode(node) {
     if (element.hasAttribute('data-no-inflation')) return true;
     if (element.classList && element.classList.contains('inflation-adjusted-price')) return true;
     if (element.id === 'tooltips') return true;
+    if (element.classList && element.classList.contains('nfltnlns-tooltip')) return true;
     element = element.parentElement;
   }
 
