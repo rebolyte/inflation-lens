@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Inflation Lens",
   "version": "1.0.0",
-  "description": "Automatically adjust historical prices for inflation",
+  "description": "See any price in today's dollars ",
   "permissions": ["activeTab", "storage", "tabs"],
   "host_permissions": ["<all_urls>"],
   "action": {

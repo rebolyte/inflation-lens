@@ -19,7 +19,7 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #ff9900 0%, #ff6600 100%);
+  background: oklch(60.9% 0.126 221.723);
   color: white;
   padding: 20px;
   text-align: center;

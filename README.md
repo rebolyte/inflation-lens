@@ -1,16 +1,20 @@
-# Amazon Wishlist Exporter
+# Inflation Lens
 
-A Chrome extension to export your Amazon wishlists.
+A Chrome extension see any price in today's dollars.
 
-![screencap](https://github.com/user-attachments/assets/2a21adee-6aa1-45c8-bef3-1b55a532257f)
+<img width="1439" alt="screenshot" src="https://github.com/user-attachments/assets/25a7ddd9-db9e-452f-8a53-169bd79c8b11" />
 
-Amazon wishlists are convenient because you can quickly save almost any product you find online. But Amazon does not make your wishlists accessible via API or allow OAuth apps to read them. They do have an option to print a wishlist, but doesn't have all the data, doesn't link back to the product pages, and you have to click through to see all items.
+Using real CPI (Consumer Price Index) data, the extension will detect the year a page was published and either highlight or replace all prices in the page with today's inflation-adjusted amount.
 
-This extension automates loading all items for you and gives you some export format options (CSV, JSON, or HTML [print to PDF]).
+Currently this detects US dollars.
 
 The extension runs entirely locally in your browser. It doesn't collect anything about you or send anything anywhere.
 
 ## Installation
+
+### From Chrome Web Store
+
+`TODO`
 
 ### From Source
 
@@ -20,13 +24,9 @@ The extension runs entirely locally in your browser. It doesn't collect anything
    - Open Chrome and navigate to `chrome://extensions/` (or overflow menu -> Extensions -> Manage extensions)
    - Enable "Developer mode" (toggle in the top right)
    - Click "Load unpacked"
-   - Select the `wishlist-export` folder
+   - Select the `inflation-lens` folder
 
 You should see the extension in your extensions list. Pin it in your toolbar for easy access.
-
-### From Chrome Web Store
-
-`TODO`
 
 ## Usage
 
