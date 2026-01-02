@@ -28,14 +28,6 @@ The extension runs entirely locally in your browser. It doesn't collect anything
 
 You should see the extension in your extensions list. Pin it in your toolbar for easy access.
 
-## Usage
-
-1. Navigate to your Amazon wishlist
-2. Click the extension icon in your Chrome toolbar
-3. Choose CSV (Excel/Numbers/Google Sheets), JSON, or HTML (print to PDF)
-4. Click "Export Wishlist"
-5. Open the exported file
-
 ## Errata
 
 https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world
