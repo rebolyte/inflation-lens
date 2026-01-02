@@ -36,6 +36,7 @@ test.describe('Year override functionality', () => {
     const contentPage = new ContentPage(contentPageHandle);
     const prices = ['This item costs $100.00'];
     const url = new URL('/fixture.html', 'http://localhost:3000');
+    url.searchParams.set('year', 'none');
     url.searchParams.set('prices', encodeURIComponent(JSON.stringify(prices)));
 
     await contentPage.goto(url.toString());

@@ -9,7 +9,8 @@
     (function() {
       function init() {
         const urlParams = new URLSearchParams(window.location.search);
-        const year = urlParams.get('year');
+        const yearParam = urlParams.get('year');
+        const year = yearParam === 'none' ? null : (yearParam || '2010');
         const meta = document.getElementById('article-published-time');
         if (meta && year) {
           meta.setAttribute('content', `${year}-01-01T00:00:00Z`);
