@@ -119,12 +119,10 @@ function createZip(version) {
 function gitCommitAndTag(version) {
   const tag = `v${version}`;
 
-  try {
-    run(`git rev-parse ${tag}`);
+  const existingTag = run(`git tag -l ${tag}`);
+  if (existingTag) {
     console.error(`Error: Tag ${tag} already exists`);
     process.exit(1);
-  } catch {
-    // Tag doesn't exist, good
   }
 
   run('git add package.json CHANGELOG.md');
