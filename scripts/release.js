@@ -6,6 +6,8 @@ import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const PKG_PATH = path.join(ROOT, 'package.json');
+const MANIFEST_PATH = path.join(ROOT, 'manifest.json');
+const POPUP_PATH = path.join(ROOT, 'src/popup/popup.html');
 const CHANGELOG_PATH = path.join(ROOT, 'CHANGELOG.md');
 
 function run(cmd, opts = {}) {
@@ -48,6 +50,20 @@ function updatePackageJson(version) {
   pkg.version = version;
   fs.writeFileSync(PKG_PATH, JSON.stringify(pkg, null, 2) + '\n');
   console.log(`Updated package.json to ${version}`);
+}
+
+function updateManifest(version) {
+  const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf-8'));
+  manifest.version = version;
+  fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + '\n');
+  console.log(`Updated manifest.json to ${version}`);
+}
+
+function updatePopupVersion(version) {
+  let content = fs.readFileSync(POPUP_PATH, 'utf-8');
+  content = content.replace(/<p class="small">v[\d.]+<\/p>/, `<p class="small">v${version}</p>`);
+  fs.writeFileSync(POPUP_PATH, content);
+  console.log(`Updated popup.html to v${version}`);
 }
 
 function updateChangelog(version) {
@@ -125,7 +141,7 @@ function gitCommitAndTag(version) {
     process.exit(1);
   }
 
-  run('git add package.json CHANGELOG.md');
+  run('git add package.json manifest.json src/popup/popup.html CHANGELOG.md');
   run(`git commit -m "chore: bump version to ${version}"`);
   run('git push origin main');
   run(`git tag ${tag} -m ""`);
@@ -166,6 +182,8 @@ function main() {
   console.log(`New version: ${version}\n`);
 
   updatePackageJson(version);
+  updateManifest(version);
+  updatePopupVersion(version);
   updateChangelog(version);
   const zipPath = createZip(version);
   gitCommitAndTag(version);
